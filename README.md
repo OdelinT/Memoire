@@ -17,7 +17,20 @@ python -m unittest discover -v
 ~~~~
 
 ## TODO
-### User stories
+### Agent
+- Define a protocol
+- Use multiple algorithms
+- Apply them to the environment
+
+How to create a python environment:
+- https://www.tensorflow.org/agents/tutorials/1_dqn_tutorial#agent
+- https://www.tensorflow.org/agents/tutorials/2_environments_tutorial
+
+How to train it:
+- https://www.tensorflow.org/agents/tutorials/0_intro_rl
+
+### Environment
+#### User stories
 - Add price parameter
 - Add price elasticity
 - Places characteristics: 
@@ -27,13 +40,15 @@ python -m unittest discover -v
 - Different products
   - For the same or different need
 
-### Technical features
+#### Technical features
 - Add unit tests
 - Add a configuration file for parameters enablement
 - Add swagger
 - Add OpenAPI auto documentation
 
+#### Mandatory
+- Ability to configure the environment programmatically to create complex situations
 
-## Already added
+#### Already added
 - Different places
 - Places characteristic: indicative number of potential clients (given in get/places)

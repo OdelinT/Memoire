@@ -1,5 +1,6 @@
-from pileFaceEnvironment import pileFace
-from pileFaceEnvironment.pileFace import PileFace
+"""
+from src.pileFaceEnvironment.pileFace import PileFace
+#from pileFaceEnvironment.pileFace import PileFace
 import tensorflow as tf
 from tf_agents.environments import utils
 
@@ -20,3 +21,5 @@ for _ in range(10):
     cumulative_reward += time_step.reward
 
 print('Final Reward = ', cumulative_reward)
+"""
+import src.agent.agent

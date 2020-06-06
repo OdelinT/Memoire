@@ -1,7 +1,5 @@
 import unittest
-# import environment
-from environment import simulator
-from environment.simulator import simulator
+from src.environment.simulator import simulator
 
 class testSimulator(unittest.TestCase):
     def setUp(self):
