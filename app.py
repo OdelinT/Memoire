@@ -22,4 +22,6 @@ for _ in range(10):
 
 print('Final Reward = ', cumulative_reward)
 """
-import src.agent.agent
+
+#import src.agent.agent
+import src.agent.MyTFEnvironment

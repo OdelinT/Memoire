@@ -1,4 +1,5 @@
 import unittest
+"""
 from src.environment.simulator import simulator
 
 class testSimulator(unittest.TestCase):
@@ -22,3 +23,4 @@ class testSimulator(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+"""
