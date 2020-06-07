@@ -1,8 +1,14 @@
 # Mémoire: environment simulation server 
 
+Written in markdown. To read it more easily, you can convert it to docx with pandoc.
+
+~~~
+pandoc Mémoire.md -t docx -o memoire.docx
+~~~
+
 ## Install on windows
 
-Requirements : python 3.7+, pip, venv
+Requirements: python 3.7+, pip, venv
 
 ~~~~
 python -m venv env

@@ -45,10 +45,45 @@ On peut d'ailleurs considérer trois types de variables :
 
 - Les sorties issues des actions sur l'environnement (la récompense)
 
+## B- Effet cigogne
 
-## B- Sous-catégories d'effet cigogne
+Sachant que A est corrélé à B
 
-### a) Données d'apprentissage différentes non représentatives
+Explications possibles :
+
+- A cause B
+
+- B cause A
+
+- A cause B et B cause A
+
+- C connu cause A et B
+
+- C inconnu cause A et B
+
+- Coincidence
+
+Cas trivial : si on ne peut observer C, on ne peut différencier le cas n°4 du cas n°5
+
+### a) Exemples théoriques
+
+Dans le cas où A, la quantité vendue, est corrélé à une variable B
+
+- La quantité vendue cause le résultat net
+
+- Le prix cause la quantité vendue
+
+- Le nombre de ventes cause la fréquentation à venir, qui cause le nombre de ventes à venir
+
+- Les jours d'affluence causent la quantité vendue d'un produit et celle d'un autre produit
+
+- La complémentarité entre la farine et la levure cause une corrélation entre les quantités vendues de l'un et de l'autre
+
+- Une variable n'ayant aucun lien de causalité avec quoi que ce soit (ex: l'horoscope des sagittaires) peut néanmoins se retrouver corrélé avec d'autres variables si on ne dispose pas d'un échantillon suffisament grand. Peut alors exister un biais de sur-apprentissage.
+
+### b) Exemples étudiés
+
+#### Données d'apprentissage différentes non représentatives
 
 - https://app.wandb.ai/stacey/aprl/reports/Adversarial-Policies-in-Multi-Agent-Settings--VmlldzoxMDEyNzE
 
@@ -101,9 +136,9 @@ Cas réels qui correspondraient : prix dans un centre commercial connecté, sur 
 
 ### a) L'implémentation
 
-Dans TF, on peut créer deux types d'environnement : py_environment.PyEnvironment ou tf_environment.TFEnvironment 
+Dans TF, on peut créer deux types d'environnement : py_environment.PyEnvironment ou tf_environment.TFEnvironment. Les deux prennent en compte des paramètres similaires. Dans notre exemples :
 
-- Temps discret
+- Le temps est linéaire et discret
 
 - Action: pour chaque lieu et/ou produit, un prix de vente
 
@@ -112,6 +147,8 @@ Dans TF, on peut créer deux types d'environnement : py_environment.PyEnvironmen
 - Récompense: la somme, pour chaque lieu et/ou produit, du prix de vente auquel on soustrait le prix d'achat.
 
 ### b) Paramètres à ajouter
+
+Afin d'obtenir des résultats plus intéressants, on peut multiplier les paramètres possibles :
 
 - élasticité demande selon offre
 
@@ -144,23 +181,37 @@ Exemples :
 
 # III-  Analyse des résultats
 
-Questions auxquelles on souhaitait répondre, (1) :
+Questions auxquelles on souhaitait répondre :
 
-- Quelle est l'efficacité l'agent qui ne peut apprendre qu'avec des données ayant déjà été observées (2) (apprentissage supervisé) 
-
-- Versus l'efficacité de l'apprentissage par renforcement seul avec randomisation Versus l'efficacité de l'apprentissage par renforcement seul sans randomisation 
+- Quelle est l'efficacité l'agent qui ne peut apprendre qu'avec des données ayant déjà été observées et biaisées (apprentissage supervisé) 
 
 - Versus l'efficacité si on pré-entraine l'agent avec des données ayant déjà été observées puis qu'on le laisse se renforcer sans randomisation (apprentissage supervisé et par renforcement) 
 
 - Versus l'efficacité si on pré-entraine l'agent avec des données ayant déjà été observées puis qu'on le laisse se renforcer avec randomisation (apprentissage supervisé et par renforcement)
 
-## A- Si la question est triviale
+Questions supplémentaires, dans le cas où je développe un algorithme qui effectue explicitement une randomisation pour tester si les corrélations observées sont des causalités :
 
-## B- Si la question ne l'est pas: 
+- Versus l'efficacité de l'apprentissage par renforcement seul avec randomisation
+
+- Versus l'efficacité de l'apprentissage par renforcement seul sans randomisation
+
+## A- Si la réponse est explicite
+
+
+
+## B- Si les résultats nécessitent de comparer les chiffres
+
+Pour quels paramètres et quels biais, quels algorithmes obtiennent quel résultat sur un grand nombre d'opérations ?
 
 ## C- Biais
 
+### a) Données fictives, donc conditionnées à mon imagination
+
+### b) Cas impossibles à tester ou dont les résultats sont difficiles à analyser
+
 ## D- Ouverture
+
+### a) Comparaison apprentissage supervisé ? 
 
 # Conclusion
 
@@ -178,3 +229,9 @@ Questions auxquelles on souhaitait répondre, (1) :
 [5]: https://arxiv.org/abs/1707.06347
 
 [6]: https://arxiv.org/abs/1801.01290
+
+- https://scholar.google.com/scholar?hl=fr&as_sdt=0%2C5&q=reinforcement+learning+causality
+  - En 2009 : https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2713351/
+  - 2019 : https://arxiv.org/abs/1901.08162
+  - 2018 : https://ieeexplore.ieee.org/abstract/document/8115277
+  - ? : https://books.google.fr/books?hl=fr&lr=&id=2qt0DgAAQBAJ&oi=fnd&pg=PA295&dq=reinforcement+learning+causality&ots=aypw5lcR00&sig=Buj0QQOXRdF6_rFoCpeov9HdVYM&redir_esc=y#v=onepage&q=reinforcement%20learning%20causality&f=false
