@@ -33,17 +33,22 @@ Dans le cas d'une régression, la question peut sembler triviale.
 
 Puisqu'une régression consiste à mesurer les corrélations entre toutes les variables afin d'en estimer une à partir des autres, il suffit que certaines variables soient corrélées avec la celle à estimer pour biaiser les résultats. Pour combattre ce biais, il faut qu'un être humain analyse le contexte pour déterminer s'il y a causalité entre les variables.
 
+
+http://www.cems.uwe.ac.uk/~irjohnso/coursenotes/uqc832/tr-bias.pdf
+
+Cependant, cette étude montre que même dans le cas d'une régression il existe des méthodes permettant de diminuer ce biais
+
 ### b) Dans le cas de l'apprentissage par renforcement
 
 Si le cas de la régression semblait trivial, c'est peut-être parce que l'algorithme n'a pas l'occasion d'interagir avec son environnement pour tester ce qui est une corrélation et ce qui est une causalité.
 
 On peut d'ailleurs considérer trois types de variables : 
 
-- les données intrinsèques à l'environnement
+- les données intrinsèques à l'environnement (une partie des observations)
 
 - les entrées (les actions de l'agent sur l'environnement)
 
-- Les sorties issues des actions sur l'environnement (la récompense)
+- Les sorties issues des actions sur l'environnement (la récompense et une partie des observations)
 
 ## B- Effet cigogne
 
@@ -65,7 +70,7 @@ Explications possibles :
 
 Cas trivial : si on ne peut observer C, on ne peut différencier le cas n°4 du cas n°5
 
-### a) Exemples théoriques
+### a) Exemples imaginaires
 
 Dans le cas où A, la quantité vendue, est corrélé à une variable B
 
@@ -81,23 +86,40 @@ Dans le cas où A, la quantité vendue, est corrélé à une variable B
 
 - Une variable n'ayant aucun lien de causalité avec quoi que ce soit (ex: l'horoscope des sagittaires) peut néanmoins se retrouver corrélé avec d'autres variables si on ne dispose pas d'un échantillon suffisament grand. Peut alors exister un biais de sur-apprentissage.
 
-### b) Exemples étudiés
+### b) Exemples dans l'apprentissage automatique
 
-#### Données d'apprentissage différentes non représentatives
+#### Coïncidence
 
-- https://app.wandb.ai/stacey/aprl/reports/Adversarial-Policies-in-Multi-Agent-Settings--VmlldzoxMDEyNzE
+Il s'agit d'une question purement statistique. Il suffit d'avoir assez de données.
+
+Peut-on aussi le voir comme un cas de problème de sur-apprentissage ?
+
+#### Données d'apprentissage non représentatives (dont Biais de sélection)
+
+##### https://app.wandb.ai/stacey/aprl/reports/Adversarial-Policies-in-Multi-Agent-Settings--VmlldzoxMDEyNzE
 
 Résumé du protocole de cette publication :
 
-On prend deux agents, A et B, et un jeu compétitif.
+- On prend deux agents, A et B, et un jeu compétitif.
 
-A apprend à jouer à partir de données de véritables joueurs.
+- A apprend à jouer à partir de données de véritables joueurs.
 
-Puis B apprend à jouer contre A
+- Puis B apprend à jouer contre A
 
-Il en résulte que la meilleure manière pour B de gagner consiste à ne pas jouer.
+Il en résulte que la meilleure manière pour B de gagner consiste à ne pas jouer. En effet, A n'a appris à jouer que contre des personnes qui savent jouer. B faisant des choses inattendues, A perd tout seul.
 
-En effet, A n'a appris à jouer que contre des personnes qui savent jouer. B faisant des choses inattendues, A perd tout seul.
+Conclusion : l'apprentissage par renforcement gagne sur le long terme face à un programme exclusivement formé sur des données qui ne recouvrent pas assez de cas.
+
+
+#### Biais de confirmation
+
+Les algos y sont-ils sensibles ? Causalité au début qui décroit avec le temps, mais l'algo continue dans le sens initial ?
+
+
+#### Tous biais confondus
+
+Même s'ils se corrigent facilement et automatiquement dans les algos déjà existants, on peut toujours en mesurer et comparer leurs interties
+
 
 
 # II- Expérimentation
@@ -170,6 +192,10 @@ Afin d'obtenir des résultats plus intéressants, on peut multiplier les paramè
 
 ## C- Les biais à implémenter
 
+### Données non représentatives
+
+Un paramètre inconnu (la taille des magasins) est créé, et influence les résultats. Ensuite, on modifie ce paramètre, ou on ajoute des situations en moyenne différente (plus grands ou plus petits), et on observe combien de temps l'algo se laissera berner (aka on mesure son inertie)
+
 A une étape de l'algorithme, arbitrairement jouter ou supprimer des magasins ou produits avec des caractéristiques non représentatives de la population de départ.
 
 Exemples : 
@@ -177,6 +203,22 @@ Exemples :
 - l'expérience était sur les carrefour city, elle inclut par la suite également les carrefour market, d'une taille en moyenne différente. Toutes les quantités varient.
 
 - la chaîne s'étend sur un territoire avec des habitudes de consommation différentes
+
+### Inciter au biais de confirmation
+
+En utilisant le biais du razoir d'Ockham (privilégier les modèles les plus simples peut conduire à oublier une variable) mentionné dans cette publication :
+
+- https://arxiv.org/pdf/cmp-lg/9612001.pdf
+
+- Etape 1- créer un biais du razoir : 
+
+  - Créer deux variables corrélées, l'une expliquant, pas l'autre, pour que l'agent en prenne une au pif
+  
+- Mais tadaaaaa ! En fait c'était l'autre la bonne !!!
+
+ça peut marcher ? vérifier les implémentations des algos
+
+Ou bien, on verra bien une fois qu'on a testé
 
 
 # III-  Analyse des résultats
@@ -203,7 +245,7 @@ Questions supplémentaires, dans le cas où je développe un algorithme qui effe
 
 Pour quels paramètres et quels biais, quels algorithmes obtiennent quel résultat sur un grand nombre d'opérations ?
 
-## C- Biais
+## C- Biais de la démarche
 
 ### a) Données fictives, donc conditionnées à mon imagination
 
@@ -211,7 +253,13 @@ Pour quels paramètres et quels biais, quels algorithmes obtiennent quel résult
 
 ## D- Ouverture
 
-### a) Comparaison apprentissage supervisé ? 
+### Comparaisons impossibles
+
+Seulement des tests d'un agent face à un environnement
+
+#### On ne peut pas extrapoler les comparaisons entre algorithmes en concurrence.
+
+#### Ni comparer avec des résultats obtenus par régression
 
 # Conclusion
 
@@ -235,3 +283,34 @@ Pour quels paramètres et quels biais, quels algorithmes obtiennent quel résult
   - 2019 : https://arxiv.org/abs/1901.08162
   - 2018 : https://ieeexplore.ieee.org/abstract/document/8115277
   - ? : https://books.google.fr/books?hl=fr&lr=&id=2qt0DgAAQBAJ&oi=fnd&pg=PA295&dq=reinforcement+learning+causality&ots=aypw5lcR00&sig=Buj0QQOXRdF6_rFoCpeov9HdVYM&redir_esc=y#v=onepage&q=reinforcement%20learning%20causality&f=false
+
+
+# VRAC
+
+## Résumés de publications
+
+> http://www.cems.uwe.ac.uk/~irjohnso/coursenotes/uqc832/tr-bias.pdf
+
+- **Solution** : réduction de la variance
+
+- **Problème** : coûteux en ressources (pour l'époque ?)
+
+- **Comment l'utiliser** : "La question a déjà été traitée, mais il y a 25 ans, et seulement pour l'apprentissage supervisé, et ça coûtait trop de ressources.
+
+- **Peut-être toujours d'actualité pour le renforcement ?** De plus, si on combine une réduction de variance avec un algo plus récent et moins coûteux, ça pourrait être pas mal".
+
+> https://arxiv.org/pdf/cmp-lg/9612001.pdf
+
+
+> https://people.csail.mit.edu/malte/pub/papers/2019-iclr-variance.pdf
+
+
+> https://dl.acm.org/doi/10.5555/3305381.3305400
+
+à propos de la baisse de la variance grâce à l'algo DQN
+
+> https://link.springer.com/article/10.1007/s11219-012-9180-0
+
+sur le biais de confirmation
+
+

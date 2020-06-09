@@ -3,7 +3,7 @@
 Written in markdown. To read it more easily, you can convert it to docx with pandoc.
 
 ~~~
-pandoc Mémoire.md -t docx -o memoire.docx
+pandoc Memoire.md -t docx -o memoire.docx
 ~~~
 
 ## Install on windows
