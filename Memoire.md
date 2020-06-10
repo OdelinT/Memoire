@@ -109,6 +109,16 @@ Peut-on aussi le voir comme un cas de problème de sur-apprentissage ?
 
 #### Données d'apprentissage non représentatives (dont Biais de sélection)
 
+##### Tromper l'agent si sa récompense n'est pas assez précise?
+
+Si 80% de sa récompense est basée sur 20% de ses actions, l'algorithme mettra plus de temps à estimer l'importance respective de chaque variable.
+
+On peut maximiser ce biais :
+
+- En fournissant une récompense et/ou des observations aggrégées à une granularité trop épaisse
+
+- Nous arrivons alors à une coïncidence et un biais de surapprentissage
+
 ##### https://app.wandb.ai/stacey/aprl/reports/Adversarial-Policies-in-Multi-Agent-Settings--VmlldzoxMDEyNzE
 
 Résumé du protocole de cette publication :
@@ -145,73 +155,7 @@ J'ai choisi (/ commencé à utiliser) Tensorflow, car la documentation semble cl
 
 Diagramme de classes :
 
-~~~plantuml
-@startuml
-skinparam monochrome true
-skinparam shadowing false
-
-package tf_agents{
-    package environments{
-        class py_environment{
-            {abstract} observation()
-            {abstract} action()
-            {abstract} reward()
-        }
-        class tf_environment extends py_environment{
-            {abstract} observation()
-            {abstract} action()
-            {abstract} reward()
-        }
-    }
-    package agents{
-        class dqn_agent{}
-        class reinforce_agent{}
-    }
-}
-package Memoire{
-    class App{
-        main()
-    }
-    package Agent{
-            class MonAgent {}
-    }
-    package Environment{
-        class MonEnvironment extends tf_environment{
-            observation()
-            action()
-            reward()
-        }
-        class Place {
-            + int id
-            - int Size
-            + int getFrequencation()
-            + Dictionary<Product, int> quantitiesSold(Dictionary<Product, int> prices)
-        }
-        class Product {
-            + int id
-            - float BasePrice
-        }
-    }
-}
-
-note "Mais en fait, je peux parfaitement\nmodéliser mes classes par une matrice à\ndouble entrée (produit, prix), avec le\nprix en entrée, la quantité en sortie oO" as Remarque
-
-Remarque ..up.. Place
-Remarque ..up.. Product
-
-Place "*" - "*" Product: vend >
-MonEnvironment - "*" Place: comprend >
-
-MonAgent -down- "2" MonEnvironment: instancie >
-
-MonAgent --up-- "1" dqn_agent: utilise >
-MonAgent --up-- "1" reinforce_agent: utilise > 
-
-App -left- MonAgent: instancie, paramètre et mesure >
-
-@enduml
-~~~
-
+![](images/diag_class.svg)
 
 ## A- L'agent et les algorithmes
 
