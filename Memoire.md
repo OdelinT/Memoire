@@ -2,12 +2,6 @@
 
 ## L'effet cigogne dans le cas de l'apprentissage automatique par renforcement
 
-### Problématique
-
-- Peut-on utiliser l'apprentissage par renforcement pour différencier ces corrélations de causalités ?
-
-- Dans quelle mesure ce biais influence-t-il le résultat de prédictions basées sur l'apprentissage automatique ?
-
 ### Réflexion
 
 Tout vient d'une réflexion sur la différence entre corrélation et causalité. C'est un problème qui survient systématiquement lorsqu'on fait des statistiques descriptives à partir de données dont on dispose. 
@@ -21,6 +15,25 @@ Avec une randomisation : couper aléatoirement un échantillon en deux, agir sur
 Comment peut-on répondre à ce biais automatiquement ?
 
 On peut imaginer un algorithme qui va apprendre non pas à partir de données en entrée, mais face à une situation, en lui permettant d'agir dessus suivant un protocole expérimental rigoureux et robuste face à la confusion corrélation/causalité via un apprentissage par renforcement.
+
+### Problématique
+
+- Peut-on utiliser l'apprentissage par renforcement pour différencier ces corrélations de causalités ?
+
+- Dans quelle mesure ce biais influence-t-il le résultat de prédictions basées sur l'apprentissage automatique ?
+
+
+### Question sur les noms
+
+Le français "apprentissage automatique" est-il vraiment synonyme de "machine learning" en anglais ?
+
+Cela n'est pas certain quand on compare les fréquences de ces expressions au cours du temps.
+
+Soit l'expression "apprentissage automatique" était porteuse d'un tout autre sens dans les années 1960, soit il s'agit de deux notions différentes, l'apprentissage automatique englobant le machine learning.
+
+![Fréquences de "apprentissage automatique" en français](images/frequences_aa_fr.PNG)
+
+![Fréquences de "machine learning" en anglais](images/frequences_ml_en.PNG)
 
 
 # I- Revue de littérature
@@ -129,6 +142,76 @@ Faire interagir un agent suivant plusieurs algorithmes d'apprentissage par renfo
 Pour créer des situation biaisées, on préfèrera utiliser une librairie permettant de créer un environnement.
 
 J'ai choisi (/ commencé à utiliser) Tensorflow, car la documentation semble claire et bien fournie, et que la librairie implémente plusieurs algorithmes.
+
+Diagramme de classes :
+
+~~~plantuml
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+
+package tf_agents{
+    package environments{
+        class py_environment{
+            {abstract} observation()
+            {abstract} action()
+            {abstract} reward()
+        }
+        class tf_environment extends py_environment{
+            {abstract} observation()
+            {abstract} action()
+            {abstract} reward()
+        }
+    }
+    package agents{
+        class dqn_agent{}
+        class reinforce_agent{}
+    }
+}
+package Memoire{
+    class App{
+        main()
+    }
+    package Agent{
+            class MonAgent {}
+    }
+    package Environment{
+        class MonEnvironment extends tf_environment{
+            observation()
+            action()
+            reward()
+        }
+        class Place {
+            + int id
+            - int Size
+            + int getFrequencation()
+            + Dictionary<Product, int> quantitiesSold(Dictionary<Product, int> prices)
+        }
+        class Product {
+            + int id
+            - float BasePrice
+        }
+    }
+}
+
+note "Mais en fait, je peux parfaitement\nmodéliser mes classes par une matrice à\ndouble entrée (produit, prix), avec le\nprix en entrée, la quantité en sortie oO" as Remarque
+
+Remarque ..up.. Place
+Remarque ..up.. Product
+
+Place "*" - "*" Product: vend >
+MonEnvironment - "*" Place: comprend >
+
+MonAgent -down- "2" MonEnvironment: instancie >
+
+MonAgent --up-- "1" dqn_agent: utilise >
+MonAgent --up-- "1" reinforce_agent: utilise > 
+
+App -left- MonAgent: instancie, paramètre et mesure >
+
+@enduml
+~~~
+
 
 ## A- L'agent et les algorithmes
 
@@ -295,9 +378,9 @@ Seulement des tests d'un agent face à un environnement
 
 - **Problème** : coûteux en ressources (pour l'époque ?)
 
-- **Comment l'utiliser** : "La question a déjà été traitée, mais il y a 25 ans, et seulement pour l'apprentissage supervisé, et ça coûtait trop de ressources.
+- **Comment l'utiliser** : La question a déjà été traitée, mais il y a 25 ans, et seulement pour l'apprentissage supervisé, et ça coûtait trop de ressources.
 
-- **Peut-être toujours d'actualité pour le renforcement ?** De plus, si on combine une réduction de variance avec un algo plus récent et moins coûteux, ça pourrait être pas mal".
+- **Peut-être toujours d'actualité pour le renforcement ?** De plus, si on combine une réduction de variance avec un algo plus récent et moins coûteux, ça pourrait être pas mal.
 
 > https://arxiv.org/pdf/cmp-lg/9612001.pdf
 
