@@ -18,6 +18,10 @@ On peut imaginer un algorithme qui va apprendre non pas à partir de données en
 
 ### Problématique
 
+Par "biais", on considèrera la définition suivante : "une démarche ou un procédé qui engendre des erreurs".
+
+La définition formelle en statistique de biais, "différence entre la valeur de l'espérance d'un estimateur et la valeur qu'il est censé estimer" correspondrait à un problème de régression. Mais pour un algorithme d'apprentissage par renforcement, l'objectif n'est pas tant d'estimer au plus proche un résultat que de maximiser ce dernier.
+
 - Peut-on utiliser l'apprentissage par renforcement pour différencier ces corrélations de causalités ?
 
 - Dans quelle mesure ce biais influence-t-il le résultat de prédictions basées sur l'apprentissage automatique ?
@@ -46,10 +50,10 @@ Dans le cas d'une régression, la question peut sembler triviale.
 
 Puisqu'une régression consiste à mesurer les corrélations entre toutes les variables afin d'en estimer une à partir des autres, il suffit que certaines variables soient corrélées avec la celle à estimer pour biaiser les résultats. Pour combattre ce biais, il faut qu'un être humain analyse le contexte pour déterminer s'il y a causalité entre les variables.
 
-
-http://www.cems.uwe.ac.uk/~irjohnso/coursenotes/uqc832/tr-bias.pdf
+> http://www.cems.uwe.ac.uk/~irjohnso/coursenotes/uqc832/tr-bias.pdf
 
 Cependant, cette étude montre que même dans le cas d'une régression il existe des méthodes permettant de diminuer ce biais
+
 
 ### b) Dans le cas de l'apprentissage par renforcement
 
@@ -63,11 +67,11 @@ On peut d'ailleurs considérer trois types de variables :
 
 - Les sorties issues des actions sur l'environnement (la récompense et une partie des observations)
 
-## B- Effet cigogne
+## B- Exemples
 
-Sachant que A est corrélé à B
+### a) Théoriques
 
-Explications possibles :
+Sachant que A est corrélé à B, il y a plusieurs explications possibles :
 
 - A cause B
 
@@ -81,9 +85,10 @@ Explications possibles :
 
 - Coincidence
 
-Cas trivial : si on ne peut observer C, on ne peut différencier le cas n°4 du cas n°5
+Si on ne peut observer C, peut-on différencier le cas 5 du cas 6 ? Peut-on estimer que nos données semblent répondre à une variable supplémentaire inconnue à partir d'une certaine quantité de données permettant d'écarter l'idée d'une coincidence ? Si oui, peut-on mesurer cette variable ? (sachant qu'on risque de la confondre avec le vrai bruit statistique)
 
-### a) Exemples imaginaires
+
+### b) Imaginaires
 
 Dans le cas où A, la quantité vendue, est corrélé à une variable B
 
@@ -99,17 +104,37 @@ Dans le cas où A, la quantité vendue, est corrélé à une variable B
 
 - Une variable n'ayant aucun lien de causalité avec quoi que ce soit (ex: l'horoscope des sagittaires) peut néanmoins se retrouver corrélé avec d'autres variables si on ne dispose pas d'un échantillon suffisament grand. Peut alors exister un biais de sur-apprentissage.
 
-### b) Exemples dans l'apprentissage automatique
+## C- Exemples dans l'apprentissage automatique
 
-#### Coïncidence
+### a) Biais induits au sein des algorithmes
+
+> https://arxiv.org/pdf/1907.02908.pdf
+
+Quand un agent est développé pour répondre à un besoin spécifique, on peut être tenté de le paramétrer via des connaissances préexistantes afin d'améliorer ses résultats. Cela peut causer des erreurs supplémentaires, en plus de rendre l'algorithme moins généralisable.
+
+#### Exemple de ce problème dans notre expérimentation
+
+Si notre agent doit acheter des marchandises puis les vendre, sa récompense est sa marge sur coûts variables.
+
+Pour lui éviter d'essayer des cas triviaux et a priori contreproductifs, on serait tenté de le paramétrer de telle sorte qu'il ne fixe jamais de prix de vente inférieur au prix d'achat. Ce qui serait une bonne idée sans compter que :
+
+- Un produit d'appel peut être vendu à perte et pourtant améliorer le revenu global
+
+- Si l'agent doit gérer ses stocks, il peut arriver qu'il doive vendre à perte pour déstocker (ex: péremption)
+
+- Vendre ou acheter à perte peut parfois être une obligation légale 
+
+  - Exemple : EDF qui achète à un prix plancher l'électricité issue d'énergies renouvelables sur le marché de l'électricité
+
+### b) Coïncidence
 
 Il s'agit d'une question purement statistique. Il suffit d'avoir assez de données.
 
-Peut-on aussi le voir comme un cas de problème de sur-apprentissage ?
+Peut-on considérer les erreurs qui y sont dues comme dues à un sur-apprentissage ?
 
-#### Données d'apprentissage non représentatives (dont Biais de sélection)
+### c) Données d'apprentissage non représentatives (dont Biais de sélection)
 
-##### Tromper l'agent si sa récompense n'est pas assez précise?
+#### Peut-on tromper l'agent s'il ne peut déterminer l'importance de ses actions dans la récompense finale ?
 
 Si 80% de sa récompense est basée sur 20% de ses actions, l'algorithme mettra plus de temps à estimer l'importance respective de chaque variable.
 
@@ -119,7 +144,7 @@ On peut maximiser ce biais :
 
 - Nous arrivons alors à une coïncidence et un biais de surapprentissage
 
-##### https://app.wandb.ai/stacey/aprl/reports/Adversarial-Policies-in-Multi-Agent-Settings--VmlldzoxMDEyNzE
+#### https://app.wandb.ai/stacey/aprl/reports/Adversarial-Policies-in-Multi-Agent-Settings--VmlldzoxMDEyNzE
 
 Résumé du protocole de cette publication :
 
@@ -134,14 +159,14 @@ Il en résulte que la meilleure manière pour B de gagner consiste à ne pas jou
 Conclusion : l'apprentissage par renforcement gagne sur le long terme face à un programme exclusivement formé sur des données qui ne recouvrent pas assez de cas.
 
 
-#### Biais de confirmation
+### d) Biais de confirmation
 
 Les algos y sont-ils sensibles ? Causalité au début qui décroit avec le temps, mais l'algo continue dans le sens initial ?
 
 
-#### Tous biais confondus
+### e) Tous biais confondus
 
-Même s'ils se corrigent facilement et automatiquement dans les algos déjà existants, on peut toujours en mesurer et comparer leurs interties
+Même s'ils se corrigent facilement et automatiquement dans les algos déjà existants, on peut toujours en mesurer et comparer leurs interties.
 
 
 
@@ -217,6 +242,8 @@ Afin d'obtenir des résultats plus intéressants, on peut multiplier les paramè
 
 - quelle part d'aléatoire
 
+- avoir autant de produits que voulu, ou devoir également préciser une quantité à acheter ?
+
 ## C- Les biais à implémenter
 
 ### Données non représentatives
@@ -237,11 +264,11 @@ En utilisant le biais du razoir d'Ockham (privilégier les modèles les plus sim
 
 - https://arxiv.org/pdf/cmp-lg/9612001.pdf
 
-- Etape 1- créer un biais du razoir : 
+- créer un biais du razoir : 
 
-  - Créer deux variables corrélées, l'une expliquant, pas l'autre, pour que l'agent en prenne une au pif
+  - Créer deux variables corrélées, l'une expliquant, pas l'autre, pour que l'agent en prenne une au hasard
   
-- Mais tadaaaaa ! En fait c'était l'autre la bonne !!!
+  - Alors qu'en fait, c'était l'autre qui était liée par une relation de causalité à la récompense (ou les deux)
 
 ça peut marcher ? vérifier les implémentations des algos
 
@@ -278,15 +305,32 @@ Pour quels paramètres et quels biais, quels algorithmes obtiennent quel résult
 
 ### b) Cas impossibles à tester ou dont les résultats sont difficiles à analyser
 
+### c) "Effet cigogne" : une notion floue
+
+Derrière cette appellation claire en langage naturel, on peut déduire tout un ensemble de biais dans le cas de l'apprentissage automatique. Ce choix de sujet n'est peut-être pas le plus adapté.
+
 ## D- Ouverture
 
-### Comparaisons impossibles
+### a) Comparaisons impossibles
 
 Seulement des tests d'un agent face à un environnement
 
 #### On ne peut pas extrapoler les comparaisons entre algorithmes en concurrence.
 
 #### Ni comparer avec des résultats obtenus par régression
+
+### b) Ce qui n'est pas traité
+
+#### 1- Le cas de la régression, du clustering et de la classification
+
+#### 2- La loi de goodhart
+
+"Lorsqu'une mesure devient un objectif, elle cesse d'être une bonne mesure".
+
+Cela semble l'un des principaux biais lors de la mise en oeuvre d'un algorithme d'apprentissage automatique pour répondre à une problématique. Il faut en effet s'assurer qu'il n'y aie pas des manières de maximiser la mesure qui sert d'objectif au détriment de l'objectif réel (effet rebond et effet cobra).
+
+Ce biais et sa réponse, sont cependant moins des questions techniques et intrinsèques aux algorithmes que des questions d'appréciation qualitative de la pertinence des indicateurs et objectifs.
+
 
 # Conclusion
 
@@ -322,9 +366,11 @@ Seulement des tests d'un agent face à un environnement
 
 - **Problème** : coûteux en ressources (pour l'époque ?)
 
-- **Comment l'utiliser** : La question a déjà été traitée, mais il y a 25 ans, et seulement pour l'apprentissage supervisé, et ça coûtait trop de ressources.
+- **Comment l'utiliser** : La question a déjà été traitée, mais il y a 25 ans, et seulement pour les régressions, et ça coûtait trop de ressources.
 
 - **Peut-être toujours d'actualité pour le renforcement ?** De plus, si on combine une réduction de variance avec un algo plus récent et moins coûteux, ça pourrait être pas mal.
+
+"Randomization is paradoxical, because at first glance it seems to increase variance by deliberately introducing variation into the splits in the decision tree."
 
 > https://arxiv.org/pdf/cmp-lg/9612001.pdf
 
