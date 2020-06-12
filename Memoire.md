@@ -1,6 +1,6 @@
 # Introduction
 
-## L'effet cigogne dans le cas de l'apprentissage automatique par renforcement
+## L'effet cigogne dans l'apprentissage automatique par renforcement
 
 ### Réflexion
 
@@ -14,7 +14,9 @@ Avec une randomisation : couper aléatoirement un échantillon en deux, agir sur
 
 Comment peut-on répondre à ce biais automatiquement ?
 
-On peut imaginer un algorithme qui va apprendre non pas à partir de données en entrée, mais face à une situation, en lui permettant d'agir dessus suivant un protocole expérimental rigoureux et robuste face à la confusion corrélation/causalité via un apprentissage par renforcement.
+On peut imaginer un algorithme qui va apprendre non pas à partir de données en entrée, mais face à une situation, en lui permettant d'agir dessus.
+
+On peut donc ajouter d'une randomisation au sein d'un algorithme d'apprentissage par renforcement pour améliorer ses résultats, ou du moins pour voir si ses résultats évoluent.
 
 ### Problématique
 
@@ -59,13 +61,24 @@ Cependant, cette étude montre que même dans le cas d'une régression il existe
 
 Si le cas de la régression semblait trivial, c'est peut-être parce que l'algorithme n'a pas l'occasion d'interagir avec son environnement pour tester ce qui est une corrélation et ce qui est une causalité.
 
-On peut d'ailleurs considérer trois types de variables : 
+On peut d’ailleurs diiférencier trois types de variables qui construisent la réalité avec laquelle interagit un agent :
 
 - les données intrinsèques à l'environnement (une partie des observations)
 
 - les entrées (les actions de l'agent sur l'environnement)
 
 - Les sorties issues des actions sur l'environnement (la récompense et une partie des observations)
+
+Au sein des algorithmes, ces variables sont découpées de la sorte :
+
+- Les observations (qu'elles dépendent des actions de l'agent ou non)
+
+- Les actions (les décisions prises par l'agent)
+
+- La récompense (ce que l'agent doit maximiser)
+
+Ainsi, contrairement au cas d'une régression, il est déterminé dès le départ sur quoi l'agent peut agir. Il ne peut pas vérifier l'existence de causalité entre deux variables qui ne dépendent pas de lui
+
 
 ## B- Exemples
 
@@ -180,9 +193,11 @@ J'ai choisi (/ commencé à utiliser) Tensorflow, car la documentation semble cl
 
 Diagramme de classes :
 
-![](images/diag_class.svg)
+![](images/diag_class.PNG)
 
-## A- L'agent et les algorithmes
+## A- L'agent
+
+### a) Les algorithmes existants
 
 Algorithmes présents dans TF :
 
@@ -198,8 +213,11 @@ Algorithmes présents dans TF :
 
 - [SAC][6]
 
-TODO: réussir à les faire marcher, puis écrire une boucle for qui enregistre les résultats de chaque algos pour une configuration de l'environnement donnée
+### b) Ajouter une étape de randomisation
 
+### c) Configuration et enregistrement des résultats
+
+TODO: réussir à les faire marcher, puis écrire une boucle for qui enregistre les résultats de chaque algos pour une configuration de l'environnement donnée
 
 ## B- L'environnement
 
