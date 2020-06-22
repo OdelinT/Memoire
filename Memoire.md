@@ -349,6 +349,16 @@ Cela semble l'un des principaux biais lors de la mise en oeuvre d'un algorithme 
 
 Ce biais et sa réponse, sont cependant moins des questions techniques et intrinsèques aux algorithmes que des questions d'appréciation qualitative de la pertinence des indicateurs et objectifs.
 
+#### 3- Temps réel
+
+Il ne s'agit ici que de comparer que les résultats des algos face aux biais, indépendamment de leur temps d'exécution ou de leur consommation de ressources. Les résultats ne sont donc pas applicables dans une situation en temps réel où le temps d'exécution entre en conflit avec un temps de réponse imposé.
+
+#### 4- Biais connexes
+
+Face à des données d'apprentissage trop "propres", le modèle obtenu peut devenir rigide.
+
+Cependant, je ne parle que de corrélation vs causalité. Ce problème est hors périmètre puisque la causalité est réelle.
+
 
 # Conclusion
 
