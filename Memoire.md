@@ -143,7 +143,7 @@ Pour lui éviter d'essayer des cas triviaux et a priori contreproductifs, on ser
 
 Il s'agit d'une question purement statistique. Il suffit d'avoir assez de données.
 
-Peut-on considérer les erreurs qui y sont dues comme dues à un sur-apprentissage ?
+Peut-on considérer les erreurs qui y sont dues comme un exemple de sur-apprentissage ?
 
 ### c) Données d'apprentissage non représentatives (dont Biais de sélection)
 
@@ -193,7 +193,7 @@ J'ai choisi (/ commencé à utiliser) Tensorflow, car la documentation semble cl
 
 Diagramme de classes :
 
-![](images/diag_class.PNG)
+![](images/diag_class.png)
 
 ## A- L'agent
 
@@ -217,7 +217,7 @@ Algorithmes présents dans TF :
 
 ### c) Configuration et enregistrement des résultats
 
-TODO: réussir à les faire marcher, puis écrire une boucle for qui enregistre les résultats de chaque algos pour une configuration de l'environnement donnée
+TODO: réussir à les faire marcher, puis écrire une boucle for qui enregistre les résultats de chaque algo pour une configuration de l'environnement donnée
 
 ## B- L'environnement
 
@@ -347,7 +347,7 @@ Seulement des tests d'un agent face à un environnement
 
 Cela semble l'un des principaux biais lors de la mise en oeuvre d'un algorithme d'apprentissage automatique pour répondre à une problématique. Il faut en effet s'assurer qu'il n'y aie pas des manières de maximiser la mesure qui sert d'objectif au détriment de l'objectif réel (effet rebond et effet cobra).
 
-Ce biais et sa réponse, sont cependant moins des questions techniques et intrinsèques aux algorithmes que des questions d'appréciation qualitative de la pertinence des indicateurs et objectifs.
+Ce biais et sa réponse sont cependant moins des questions techniques et intrinsèques aux algorithmes que des questions d'appréciation qualitative de la pertinence des indicateurs et objectifs.
 
 #### 3- Temps réel
 
