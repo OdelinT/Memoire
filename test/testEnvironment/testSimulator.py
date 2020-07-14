@@ -29,8 +29,8 @@ from src.environment.PyEnv import PyEnv
 
 class test(unittest.TestCase):
     def setUp(self):
-        self.size = 100
-        self.duration = 365
+        self.size = 10
+        self.duration = 10
         self.env = PyEnv(self.size, self.duration)
 
     def testValidate(self):
@@ -61,12 +61,8 @@ class test(unittest.TestCase):
         stateEstimation = 0
         while keep:
             result = self.env._step(action)
-            """
-            stateEstimation += 1
-            print("State: ", stateEstimation)
-
-            #print("Observation: ", result[0])
-            #print("Reward: ", result[1])
-            """
+            if False:
+                print("Observation: ", result[0])
+                print("Reward: ", result[1])
             keep = result[2]
         print("Finished")        

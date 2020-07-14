@@ -8,8 +8,8 @@ class product:
         self.usualBuyingRate = random.random() / 20
         self.usualPrice = self.cost / (1 - self.usualMarginRate)
 
-    def getDemand(self, price):
+    def getDemand(self, price): # units
         return (price / self.usualPrice) * self.usualBuyingRate
     
     def getMargin(self, price, quantity):
-        return (price - self.cost) * quantity
+        return (price / self.cost) * quantity

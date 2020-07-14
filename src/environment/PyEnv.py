@@ -18,16 +18,26 @@ tf.compat.v1.enable_v2_behavior()
 class PyEnv(py_environment.PyEnvironment):
     def __init__(self, size = 100, duration = 365):
         self.duration = duration
+        self.size = size
+
         self.places = []
-        for i in range(size):
+        for i in range(self.size):
             self.places.append(place())
+        self.places.sort(key=lambda p: p.size)
+        
         self.products = []
-        for i in range(size):
+        for i in range(self.size):
             self.products.append(product())
+        self.products.sort(key=lambda p: p.cost)
+
+        # self.initial_observation = [[]*self.size]*self.size
+        self.initial_observation = np.zeros((self.size, self.size), dtype=np.int32)
+
         self._action_spec = array_spec.BoundedArraySpec(
-            shape=(size,), dtype=np.int32, minimum=0, maximum=1, name='action')
+            shape=(self.size,), dtype=np.float, minimum=0, maximum=1, name='action')
         self._observation_spec = array_spec.BoundedArraySpec(
-            shape=(size,), dtype=np.int32, minimum=0, name='observation')
+            shape=(self.size,self.size), dtype=np.int32, minimum=0, name='observation')
+        
         self._state = 0
         self._episode_ended = False
 
@@ -41,7 +51,7 @@ class PyEnv(py_environment.PyEnvironment):
         #self._state = 0
         #self._episode_ended = False
         self.__init__()
-        return ts.restart(np.array([self._state], dtype=np.int32))
+        return ts.restart(self.initial_observation)
     
     def _step(self, action):
         observation = []
@@ -52,7 +62,8 @@ class PyEnv(py_environment.PyEnvironment):
                 price = action[j]
                 quantity = self.places[i].getDemand(self.products[j], price)
                 margin = self.products[j].getMargin(price, quantity)
-                observation[i].append((quantity, margin))
+                # observation[i].append((quantity, margin))
+                observation[i].append(quantity)
                 reward += margin
         if self._state < self.duration:
             self._state += 1

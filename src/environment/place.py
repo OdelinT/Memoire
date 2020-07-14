@@ -5,4 +5,4 @@ class place:
         self.size = random.randint(100, 10000)
     
     def getDemand(self, product, price):
-        return product.getDemand(price)
+        return int(product.getDemand(price) * self.size)
