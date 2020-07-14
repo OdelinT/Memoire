@@ -67,8 +67,6 @@ class PyEnv(py_environment.PyEnvironment):
                 reward += margin
         if self._state < self.duration:
             self._state += 1
-            # return ts.transition(observation, reward)
-            return observation, reward, True
+            return ts.transition(observation, reward)
         else:
-            # return ts.termination(observation, reward)
-            return observation, reward, False
+            return ts.termination(observation, reward)

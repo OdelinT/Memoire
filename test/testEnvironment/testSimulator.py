@@ -64,5 +64,5 @@ class test(unittest.TestCase):
             if False:
                 print("Observation: ", result[0])
                 print("Reward: ", result[1])
-            keep = result[2]
+            keep = result[2] # 2=index of discount
         print("Finished")        
