@@ -29,22 +29,44 @@ from src.environment.PyEnv import PyEnv
 
 class test(unittest.TestCase):
     def setUp(self):
-        self.sim = PyEnv()
+        self.size = 100
+        self.duration = 365
+        self.env = PyEnv(self.size, self.duration)
 
     def testValidate(self):
-        utils.validate_py_environment(self.sim, episodes=5)
+        utils.validate_py_environment(self.env, episodes=5)
 
+    """
     def testPlay(self):
-        time_step = self.sim.reset()
+        time_step = self.env.reset()
         #step = np.array(.5, dtype=np.float32)
 
         print(time_step)
         cumulative_reward = time_step.reward
 
         for _ in range(3):
-            time_step = self.sim.step(.8)
+            time_step = self.env.step(.8)
             print(time_step)
             cumulative_reward += time_step.reward
 
         cumulative_reward += time_step.reward
         print('Final Reward = ', cumulative_reward)
+    """
+
+    def testUselessAction(self):
+        action = []
+        for i in range(self.size):
+            action.append(i)
+        keep = True
+        stateEstimation = 0
+        while keep:
+            result = self.env._step(action)
+            """
+            stateEstimation += 1
+            print("State: ", stateEstimation)
+
+            #print("Observation: ", result[0])
+            #print("Reward: ", result[1])
+            """
+            keep = result[2]
+        print("Finished")        
