@@ -402,6 +402,16 @@ Cependant, je ne parle que de corrélation vs causalité. Ce problème est hors 
 
 > https://arxiv.org/pdf/cmp-lg/9612001.pdf
 
+Biais du razoir d'Ockham ?!
+
+- Etape 1- créer un biais du razoir : 
+
+  - Créer deux variables corrélées, l'une expliquant, pas l'autre, pour que l'agent en prenne une au pif
+  
+- Mais tadaaaaa ! En fait c'était l'autre la bonne !!!
+
+ça peut marcher ce truc ? vérifier les implémentations des algos
+
 
 > https://people.csail.mit.edu/malte/pub/papers/2019-iclr-variance.pdf
 
@@ -410,8 +420,27 @@ Cependant, je ne parle que de corrélation vs causalité. Ce problème est hors 
 
 à propos de la baisse de la variance grâce à l'algo DQN
 
-> https://link.springer.com/article/10.1007/s11219-012-9180-0
+> https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5722032/
 
-sur le biais de confirmation
+Comment différencier (pas exactement mais souvent) corrélation de causalité en stats "normales"
+
+Randomisation mendelienne
+
+https://people.csail.mit.edu/malte/pub/papers/2019-iclr-variance.pdf
+
+https://dl.acm.org/doi/10.5555/3305381.3305400
 
 
+> https://academic.oup.com/ije/article/48/3/691/5132989
+
+La randomisation mendelienne est sensible au biais de sélection
+
+
+> https://arxiv.org/abs/1908.02983
+
+No entiendo todo, mais il y a peut-être quelque chose à en tirer pour induire un biais de confirmation
+
+
+> https://arxiv.org/pdf/1703.02702.pdf
+
+"Robust Adversarial Reinforcement Learning" -> des choses à en tirer ?
