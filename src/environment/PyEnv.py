@@ -21,22 +21,22 @@ class PyEnv(py_environment.PyEnvironment):
         self.size = size
 
         self.places = []
-        for i in range(self.size):
+        for _ in range(self.size):
             self.places.append(place())
         self.places.sort(key=lambda p: p.size)
         
         self.products = []
-        for i in range(self.size):
+        for _ in range(self.size):
             self.products.append(product())
         self.products.sort(key=lambda p: p.cost)
-
-        # self.initial_observation = [[]*self.size]*self.size
-        self.initial_observation = np.zeros((self.size, self.size), dtype=np.int32)
+        
+        self.initial_observation = np.zeros((self.size,self.size), dtype=np.int32)
 
         self._action_spec = array_spec.BoundedArraySpec(
             shape=(self.size,), dtype=np.float, minimum=0, maximum=1, name='action')
-        self._observation_spec = array_spec.BoundedArraySpec(
-            shape=(self.size,self.size), dtype=np.int32, minimum=0, name='observation')
+        
+        self._observation_spec = array_spec.ArraySpec(
+            shape = (self.size,self.size),dtype='int32',name = 'observation')
         
         self._state = 0
         self._episode_ended = False
@@ -65,6 +65,7 @@ class PyEnv(py_environment.PyEnvironment):
                 # observation[i].append((quantity, margin))
                 observation[i].append(quantity)
                 reward += margin
+        observation = np.array(observation) # convert to numpy array, otherwise not accepted by specs
         if self._state < self.duration:
             self._state += 1
             return ts.transition(observation, reward)
