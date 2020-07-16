@@ -12,6 +12,7 @@ from tf_agents.environments import wrappers
 #from tf_agents.environments import suite_gym
 from .place import place
 from .product import product
+import asyncio
 
 tf.compat.v1.enable_v2_behavior()
 
@@ -33,7 +34,7 @@ class PyEnv(py_environment.PyEnvironment):
         self.initial_observation = np.zeros((self.size,self.size), dtype=np.int32)
 
         self._action_spec = array_spec.BoundedArraySpec(
-            shape=(self.size,), dtype=np.float, minimum=0, maximum=1, name='action')
+            shape=(self.size,), dtype=np.float, minimum=0, maximum=1000, name='action')
         
         self._observation_spec = array_spec.ArraySpec(
             shape = (self.size,self.size),dtype='int32',name = 'observation')
@@ -54,18 +55,21 @@ class PyEnv(py_environment.PyEnvironment):
         return ts.restart(self.initial_observation)
     
     def _step(self, action):
-        observation = []
+        observation = [None] * len(self.products)
         reward = 0
+        # TODO parallelize these loops or use numpy to speed up
         for i in range(len(self.places)):
-            observation.append([])
+            line = [None] * len(self.products)
             for j in range(len(self.products)):
                 price = action[j]
                 quantity = self.places[i].getDemand(self.products[j], price)
                 margin = self.products[j].getMargin(price, quantity)
                 # observation[i].append((quantity, margin))
-                observation[i].append(quantity)
+                line[j] = quantity
                 reward += margin
-        observation = np.array(observation) # convert to numpy array, otherwise not accepted by specs
+            observation[i] = line
+        # convert to numpy array, otherwise not accepted by specs
+        observation = np.array(observation)
         if self._state < self.duration:
             self._state += 1
             return ts.transition(observation, reward)
