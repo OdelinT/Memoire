@@ -6,9 +6,9 @@
 
 Tout vient d'une réflexion sur la différence entre corrélation et causalité. C'est un problème qui survient systématiquement lorsqu'on fait des statistiques descriptives à partir de données dont on dispose. 
 
-L'apprentissage automatique peut lui aussi subir ce biais, ne serait-ce que parce que le biais vient des données en entrées (malgré une validation croisée).
+L'apprentissage automatique peut lui aussi subir ce biais, ne serait-ce que parce que le biais vient des données en entrées, et ce, malgré une validation croisée.
 
-Comment peut-on répondre à ce biais ?
+Quelle réponse peut-on apporter à ce biais ?
 
 Avec une randomisation : couper aléatoirement un échantillon en deux, agir sur seulement l'une des moitiés, comparer les résultats.
 
@@ -48,6 +48,8 @@ Soit l'expression "apprentissage automatique" était porteuse d'un tout autre se
 
 ### a) Dans le cas d'une régression
 
+__Pourquoi parler de la régression ?__
+
 Dans le cas d'une régression, la question peut sembler triviale.
 
 Puisqu'une régression consiste à mesurer les corrélations entre toutes les variables afin d'en estimer une à partir des autres, il suffit que certaines variables soient corrélées avec la celle à estimer pour biaiser les résultats. Pour combattre ce biais, il faut qu'un être humain analyse le contexte pour déterminer s'il y a causalité entre les variables.
@@ -80,7 +82,7 @@ Au sein des algorithmes, ces variables sont découpées de la sorte :
 Ainsi, contrairement au cas d'une régression, il est déterminé dès le départ sur quoi l'agent peut agir. Il ne peut pas vérifier l'existence de causalité entre deux variables qui ne dépendent pas de lui
 
 
-## B- Exemples
+## B- Les différents cas de corrélation
 
 ### a) Théoriques
 
@@ -101,7 +103,7 @@ Sachant que A est corrélé à B, il y a plusieurs explications possibles :
 Si on ne peut observer C, peut-on différencier le cas 5 du cas 6 ? Peut-on estimer que nos données semblent répondre à une variable supplémentaire inconnue à partir d'une certaine quantité de données permettant d'écarter l'idée d'une coincidence ? Si oui, peut-on mesurer cette variable ? (sachant qu'on risque de la confondre avec le vrai bruit statistique)
 
 
-### b) Imaginaires
+### b) Illustration de ces cas
 
 Dans le cas où A, la quantité vendue, est corrélé à une variable B
 
@@ -117,7 +119,7 @@ Dans le cas où A, la quantité vendue, est corrélé à une variable B
 
 - Une variable n'ayant aucun lien de causalité avec quoi que ce soit (ex: l'horoscope des sagittaires) peut néanmoins se retrouver corrélé avec d'autres variables si on ne dispose pas d'un échantillon suffisament grand. Peut alors exister un biais de sur-apprentissage.
 
-## C- Exemples dans l'apprentissage automatique
+## C- Exemples de biais dans l'apprentissage automatique
 
 ### a) Biais induits au sein des algorithmes
 
