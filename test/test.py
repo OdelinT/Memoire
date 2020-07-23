@@ -6,6 +6,7 @@ from tf_agents.agents.dqn import dqn_agent
 from src.environment.PyEnv import PyEnv
 from tf_agents.environments import tf_py_environment
 from tf_agents.utils import common
+import tf_agents
 
 from tf_agents.agents.reinforce import reinforce_agent
 from tf_agents.drivers import dynamic_step_driver
@@ -39,7 +40,7 @@ class test(unittest.TestCase):
         # self.env = PyEnv(self.size, self.duration)
         self.env = PyEnv()
         self.tf_env = tf_py_environment.TFPyEnvironment(self.env)
-
+    """
     def testValidate(self):
         # doesn't work if we use different size that the default value
         utils.validate_py_environment(self.env, episodes=5)
@@ -56,7 +57,7 @@ class test(unittest.TestCase):
                 print("Reward: ", result[1])
             # 2=index of discount variable in time_step.transition and time_step.termination
             keep = result[2]
-    
+    """
     # Doesn't work
     # Doc: https://www.tensorflow.org/agents/api_docs/python/tf_agents/agents/DqnAgent?hl=nl
     # Error: Network only supports action_specs with shape in [(), (1,)])
@@ -102,3 +103,31 @@ class test(unittest.TestCase):
             normalize_returns=True,
             train_step_counter=train_step_counter)
         tf_agent.initialize()
+    
+    def testTd3(self):
+        actor_net = actor_distribution_network.ActorDistributionNetwork(
+            self.tf_env.observation_spec(),
+            self.tf_env.action_spec(),
+            fc_layer_params=fc_layer_params)
+        critic_net = actor_distribution_network.ActorDistributionNetwork(
+            self.tf_env.observation_spec(),
+            self.tf_env.action_spec(),
+            fc_layer_params=fc_layer_params)
+        actor_optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=learning_rate)
+        critic_optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=learning_rate)
+
+        actor = tf_agents.agents.Td3Agent(
+            time_step_spec = self.tf_env.time_step_spec, 
+            action_spec = self.tf_env.action_spec,
+            actor_network = actor_net,
+            critic_network = critic_net,
+            actor_optimizer = actor_optimizer,
+            critic_optimizer = critic_optimizer, 
+            exploration_noise_std=0.1, critic_network_2=None,
+            target_actor_network=None, target_critic_network=None,
+            target_critic_network_2=None, target_update_tau=1.0, target_update_period=1,
+            actor_update_period=1, dqda_clipping=None, td_errors_loss_fn=None, gamma=1.0,
+            reward_scale_factor=1.0, target_policy_noise=0.2, target_policy_noise_clip=0.5,
+            gradient_clipping=None, debug_summaries=False, summarize_grads_and_vars=False,
+            train_step_counter=None, name=None
+        )

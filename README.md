@@ -19,7 +19,7 @@ python app.py
 
 ## How to test
 ~~~~
-python -m unittest discover -v
+pytest -q .\test\test.py
 ~~~~
 
 ## TODO
