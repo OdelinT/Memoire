@@ -31,13 +31,13 @@ class PyEnv(py_environment.PyEnvironment):
             self.products.append(product())
         self.products.sort(key=lambda p: p.cost)
         
-        self.initial_observation = np.zeros((self.size,self.size), dtype=np.int32)
+        self.initial_observation = np.zeros((self.size,self.size), dtype=np.float32)
 
         self._action_spec = array_spec.BoundedArraySpec(
-            shape=(self.size,), dtype=np.float, minimum=0, maximum=1000, name='action')
+            shape=(self.size,), dtype=np.float32, minimum=0, maximum=1000, name='action')
         
         self._observation_spec = array_spec.ArraySpec(
-            shape = (self.size,self.size),dtype='int32',name = 'observation')
+            shape = (self.size,self.size),dtype=np.float32,name = 'observation')
         
         self._state = 0
         self._episode_ended = False

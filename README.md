@@ -18,9 +18,19 @@ python app.py
 ~~~~
 
 ## How to test
+
+### To analyse exceptions
+
 ~~~~
 pytest -q .\test\test.py
 ~~~~
+
+### To see the results of the test cases
+
+~~~~
+python -m unittest discover
+~~~~
+
 
 ## TODO
 ### Agent
