@@ -21,15 +21,19 @@ class PyEnv(py_environment.PyEnvironment):
         self.duration = duration
         self.size = size
 
+        # Places and products
+        # Average size of places: 2000 visits per day
         self.placesSizes = np.random.exponential(size=100) * 2000
         
+        # Average cost per product: 10
         self.productsCosts = np.random.exponential(size = 100) * 10
-        self.productsUsualMarginRates = np.random.random(size = 100)
-        self.productsUsualMarginRates = np.random.random(size = 100)
-        self.productsUsualBuyingRates = np.random.exponential(size=100) /20
+        # Average margin rate: 10%
+        self.productsUsualMarginRates = np.random.exponential(size = 100) / 10
+        # Products are on average bought once per hundred of visitors
+        self.productsUsualBuyingRates = np.random.exponential(size=100) /100
         self.productsUsualPrices = self.productsCosts / (1 - self.productsUsualMarginRates)
 
-
+        # Specs
         self.initial_observation = np.zeros((self.size,self.size), dtype=np.float32)
 
         self._action_spec = array_spec.BoundedArraySpec(
@@ -56,17 +60,15 @@ class PyEnv(py_environment.PyEnvironment):
     def _step(self, action):
         observation = [None] * len(self.placesSizes)
         reward = 0
-        # TODO parallelize these loops or use numpy to speed up
+        # TODO parallelize this or use numpy to speed up
         for i in range(len(self.placesSizes)):
-            quantityLine = self.placesSizes * ((action / self.productsUsualPrices) * self.productsUsualBuyingRates)
+            # Price elasticity: we'll consider that doubling the price divides the quantity by ten
+            quantityLine = np.round((self.placesSizes[i]  * self.productsUsualBuyingRates) * (10 ** ((self.productsUsualPrices - action) / self.productsUsualPrices)))
 
-            marginPerProduct = (action / self.productsCosts) * quantityLine
+            marginPerProduct = (action - self.productsCosts) * quantityLine
 
             reward += marginPerProduct.sum()
             observation[i] = quantityLine
-        
-        
-
         # convert to numpy array, otherwise not accepted by specs
         observation = np.array(observation)
         if self._state < self.duration:

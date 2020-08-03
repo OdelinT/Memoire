@@ -20,6 +20,10 @@ from tf_agents.utils import common
 from tf_agents.agents.ddpg import critic_network
 from tf_agents.agents.sac import sac_agent
 
+import numpy as np
+
+# Test cases are commented and decommented according to what I was studying during commit.
+
 class test(unittest.TestCase):
     def setUp(self):
         self.size = 10
@@ -31,6 +35,74 @@ class test(unittest.TestCase):
         self.tf_env = tf_py_environment.TFPyEnvironment(self.env)
         self.train_env = self.tf_env
 
+    def testMyValidate(self):
+        self.env._reset()
+
+        for value in self.env.placesSizes:
+            if value < 0:
+                raise Exception()
+        for value in self.env.productsCosts:
+            if value < 0:
+                raise Exception()
+        for value in self.env.productsUsualMarginRates:
+            if value < 0:
+                raise Exception()
+            if value > 1:
+                raise Exception()
+        for value in self.env.productsUsualBuyingRates:
+            if value < 0:
+                raise Exception()
+        for i in range(len(self.env.productsUsualPrices)):
+            if self.env.productsUsualPrices[i] < self.env.productsCosts[i]:
+                raise Exception()
+
+        observation = self.env._step(self.env.productsCosts)
+        print("Product costs: ", observation)
+        costReward = observation.reward
+        if observation.reward != 0:
+            print("Error: If we sell at product cost, there should be no margin")
+
+        observation = self.env._step(self.env.productsCosts * 2)
+        print("Product costs *2: ", observation)
+        if observation.reward <= 0 and np.sum(observation.observation) > 0:
+            print("Error: If we sell at more than product cost, there should be a margin")
+
+        observation = self.env._step(self.env.productsCosts * 10)
+        print("Product costs *10: ", observation)
+        if observation.reward <= 0 and np.sum(observation.observation) > 0:
+            print("Error: If we sell at more than product cost, there should be a margin")
+
+        observation = self.env._step(self.env.productsUsualPrices)
+        print("Usual buying price: ", observation)
+        usualReward = observation.reward
+
+        observation = self.env._step(self.env.productsUsualPrices * 2)
+        print("Usual buying price *2: ", observation)
+        print("Compared to usual: ", observation.reward / usualReward)
+
+        observation = self.env._step(self.env.productsUsualPrices * 4)
+        print("Usual buying price *4: ", observation)
+        print("Compared to usual: ", observation.reward / usualReward)
+
+        observation = self.env._step(self.env.productsUsualPrices * 10)
+        print("Usual buying price *10: ", observation)
+        print("Compared to usual: ", observation.reward / usualReward)
+
+        observation = self.env._step(np.zeros(100))
+        print("0: ", observation)
+        if observation.reward >= 0.:
+            print("Error: If prices are 0, we should sell and have a deficit")
+
+        observation = self.env._step(np.zeros(100) + 1)
+        print("1: ", observation)
+        if observation.reward >= 0:
+            print("Error: If prices are 1 and average cost 10, we should sell and have a deficit")
+
+        observation = self.env._step(np.zeros(100) + 1000)
+        print("1000: ", observation)
+        if observation.reward > usualReward:
+            print("Error: An unusual price such as 1000 shouldn't cause a best result than the usual price. Error ratio: ", observation.reward / usualReward)
+        
     """
     def testValidate(self):
         utils.validate_py_environment(self.env, episodes=5)
@@ -122,7 +194,8 @@ class test(unittest.TestCase):
             train_step_counter=train_step_counter)
         tf_agent.initialize()
     """
-    
+    """
+    # Works!
     # https://github.com/tensorflow/agents/blob/master/docs/tutorials/6_reinforce_tutorial.ipynb
     def testReinforceActorDistributionNet(self):
         print("Starting testReinforceActorDistributionNet")
@@ -157,7 +230,7 @@ class test(unittest.TestCase):
         collect_policy = tf_agent.collect_policy
 
         print(self.compute_avg_return(self.train_env, collect_policy))
-    
+    """
     
     """
     def testReinforceCriticNet(self):
@@ -261,7 +334,8 @@ class test(unittest.TestCase):
         return total_return / num_episodes
         # avg_return = total_return / num_episodes
         # return avg_return.numpy()[0]
-
+    """
+    # Works!
     # https://github.com/tensorflow/agents/blob/master/docs/tutorials/7_SAC_minitaur_tutorial.ipynb
     def testSAC(self):
         print("Starting testSAC")
@@ -331,4 +405,4 @@ class test(unittest.TestCase):
         collect_policy = tf_agent.collect_policy
 
         print(self.compute_avg_return(self.train_env, collect_policy))
-        
+    """

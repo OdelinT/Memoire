@@ -12,4 +12,4 @@ class product:
         return (price / self.usualPrice) * self.usualBuyingRate
     
     def getMargin(self, price, quantity):
-        return (price / self.cost) * quantity
+        return (price - self.cost) * quantity
