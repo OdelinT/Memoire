@@ -21,16 +21,15 @@ class PyEnv(py_environment.PyEnvironment):
         self.duration = duration
         self.size = size
 
-        self.places = []
-        for _ in range(self.size):
-            self.places.append(place())
-        self.places.sort(key=lambda p: p.size)
+        self.placesSizes = np.random.exponential(size=100) * 2000
         
-        self.products = []
-        for _ in range(self.size):
-            self.products.append(product())
-        self.products.sort(key=lambda p: p.cost)
-        
+        self.productsCosts = np.random.exponential(size = 100) * 10
+        self.productsUsualMarginRates = np.random.random(size = 100)
+        self.productsUsualMarginRates = np.random.random(size = 100)
+        self.productsUsualBuyingRates = np.random.exponential(size=100) /20
+        self.productsUsualPrices = self.productsCosts / (1 - self.productsUsualMarginRates)
+
+
         self.initial_observation = np.zeros((self.size,self.size), dtype=np.float32)
 
         self._action_spec = array_spec.BoundedArraySpec(
@@ -55,19 +54,19 @@ class PyEnv(py_environment.PyEnvironment):
         return ts.restart(self.initial_observation)
     
     def _step(self, action):
-        observation = [None] * len(self.products)
+        observation = [None] * len(self.placesSizes)
         reward = 0
         # TODO parallelize these loops or use numpy to speed up
-        for i in range(len(self.places)):
-            line = [None] * len(self.products)
-            for j in range(len(self.products)):
-                price = action[j]
-                quantity = self.places[i].getDemand(self.products[j], price)
-                margin = self.products[j].getMargin(price, quantity)
-                # observation[i].append((quantity, margin))
-                line[j] = quantity
-                reward += margin
-            observation[i] = line
+        for i in range(len(self.placesSizes)):
+            quantityLine = self.placesSizes * ((action / self.productsUsualPrices) * self.productsUsualBuyingRates)
+
+            marginPerProduct = (action / self.productsCosts) * quantityLine
+
+            reward += marginPerProduct.sum()
+            observation[i] = quantityLine
+        
+        
+
         # convert to numpy array, otherwise not accepted by specs
         observation = np.array(observation)
         if self._state < self.duration:

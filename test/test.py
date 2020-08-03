@@ -7,7 +7,7 @@ from src.environment.PyEnv import PyEnv
 from tf_agents.environments import tf_py_environment
 from tf_agents.utils import common
 import tf_agents
-
+from datetime import datetime
 from tf_agents.agents.reinforce import reinforce_agent
 from tf_agents.drivers import dynamic_step_driver
 from tf_agents.environments import tf_py_environment
@@ -30,10 +30,11 @@ class test(unittest.TestCase):
         self.env = PyEnv()
         self.tf_env = tf_py_environment.TFPyEnvironment(self.env)
         self.train_env = self.tf_env
-    
+
+    """
     def testValidate(self):
-        # doesn't work if we use different size that the default value
         utils.validate_py_environment(self.env, episodes=5)
+    """
 
     """
     def testUselessAction(self):
@@ -121,7 +122,7 @@ class test(unittest.TestCase):
             train_step_counter=train_step_counter)
         tf_agent.initialize()
     """
-    """
+    
     # https://github.com/tensorflow/agents/blob/master/docs/tutorials/6_reinforce_tutorial.ipynb
     def testReinforceActorDistributionNet(self):
         print("Starting testReinforceActorDistributionNet")
@@ -156,7 +157,7 @@ class test(unittest.TestCase):
         collect_policy = tf_agent.collect_policy
 
         print(self.compute_avg_return(self.train_env, collect_policy))
-    """
+    
     
     """
     def testReinforceCriticNet(self):
@@ -255,7 +256,7 @@ class test(unittest.TestCase):
                 action_step = policy.action(time_step)
                 time_step = environment.step(action_step.action)
                 episode_return += time_step.reward
-            print("Episode return : ", episode_return)
+            print(datetime.now(), " Episode return : ", episode_return)
             total_return += episode_return
         return total_return / num_episodes
         # avg_return = total_return / num_episodes
