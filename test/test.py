@@ -34,7 +34,7 @@ class test(unittest.TestCase):
         self.env = PyEnv()
         self.tf_env = tf_py_environment.TFPyEnvironment(self.env)
         self.train_env = self.tf_env
-
+    """
     def testMyValidate(self):
         self.env._reset()
 
@@ -106,7 +106,7 @@ class test(unittest.TestCase):
     """
     def testValidate(self):
         utils.validate_py_environment(self.env, episodes=5)
-    """
+    
 
     """
     def testUselessAction(self):

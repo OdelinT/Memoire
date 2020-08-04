@@ -69,8 +69,8 @@ class PyEnv(py_environment.PyEnvironment):
 
             reward += marginPerProduct.sum()
             observation[i] = quantityLine
-        # convert to numpy array, otherwise not accepted by specs
-        observation = np.array(observation)
+        # convert to numpy array of float32, otherwise not accepted by specs
+        observation = np.array(observation, dtype=np.float32)
         if self._state < self.duration:
             self._state += 1
             return ts.transition(observation, reward)
