@@ -10,8 +10,8 @@ from tf_agents.environments import utils
 from tf_agents.specs import array_spec
 from tf_agents.environments import wrappers
 #from tf_agents.environments import suite_gym
-from .place import place
-from .product import product
+#from .place import place
+#from .product import product
 import asyncio
 
 tf.compat.v1.enable_v2_behavior()

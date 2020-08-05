@@ -3,7 +3,7 @@ from tf_agents.environments import utils
 import tensorflow as tf
 from tf_agents.networks import q_network, normal_projection_network, actor_distribution_network
 from tf_agents.agents.dqn import dqn_agent
-from src.environment.PyEnv import PyEnv
+from environment.PyEnv import PyEnv
 from tf_agents.environments import tf_py_environment
 from tf_agents.utils import common
 import tf_agents
@@ -34,10 +34,10 @@ class test(unittest.TestCase):
         self.env = PyEnv()
         self.tf_env = tf_py_environment.TFPyEnvironment(self.env)
         self.train_env = self.tf_env
-    """
+    
     def testMyValidate(self):
         self.env._reset()
-
+        #region Test environment parameters generation
         for value in self.env.placesSizes:
             if value < 0:
                 raise Exception()
@@ -55,22 +55,25 @@ class test(unittest.TestCase):
         for i in range(len(self.env.productsUsualPrices)):
             if self.env.productsUsualPrices[i] < self.env.productsCosts[i]:
                 raise Exception()
+        #endregion
 
+        #region Test environment credibility with different prices
+        print("Test environment credibility with different prices")
         observation = self.env._step(self.env.productsCosts)
         print("Product costs: ", observation)
         costReward = observation.reward
         if observation.reward != 0:
-            print("Error: If we sell at product cost, there should be no margin")
+            raise("Error: If we sell at product cost, there should be no margin")
 
         observation = self.env._step(self.env.productsCosts * 2)
         print("Product costs *2: ", observation)
         if observation.reward <= 0 and np.sum(observation.observation) > 0:
-            print("Error: If we sell at more than product cost, there should be a margin")
+            raise("Error: If we sell at more than product cost, there should be a margin")
 
         observation = self.env._step(self.env.productsCosts * 10)
         print("Product costs *10: ", observation)
         if observation.reward <= 0 and np.sum(observation.observation) > 0:
-            print("Error: If we sell at more than product cost, there should be a margin")
+            raise("Error: If we sell at more than product cost, there should be a margin")
 
         observation = self.env._step(self.env.productsUsualPrices)
         print("Usual buying price: ", observation)
@@ -91,114 +94,28 @@ class test(unittest.TestCase):
         observation = self.env._step(np.zeros(100))
         print("0: ", observation)
         if observation.reward >= 0.:
-            print("Error: If prices are 0, we should sell and have a deficit")
+            raise("Error: If prices are 0, we should sell and have a deficit")
 
         observation = self.env._step(np.zeros(100) + 1)
         print("1: ", observation)
         if observation.reward >= 0:
-            print("Error: If prices are 1 and average cost 10, we should sell and have a deficit")
+            raise("Error: If prices are 1 and average cost 10, we should sell and have a deficit")
 
         observation = self.env._step(np.zeros(100) + 1000)
         print("1000: ", observation)
         if observation.reward > usualReward:
-            print("Error: An unusual price such as 1000 shouldn't cause a best result than the usual price. Error ratio: ", observation.reward / usualReward)
-        
-    """
+            raise("Error: An unusual price such as 1000 shouldn't cause a best result than the usual price. Error ratio: ", observation.reward / usualReward)
+        #endregion
+    
     def testValidate(self):
         utils.validate_py_environment(self.env, episodes=5)
     
-
-    """
-    def testUselessAction(self):
-        action = []
-        for i in range(self.env.size):
-            action.append(i)
-        keep = True
-        while keep:
-            result = self.env._step(action)
-            if False:
-                print("Observation: ", result[0])
-                print("Reward: ", result[1])
-            # 2=index of discount variable in time_step.transition and time_step.termination
-            keep = result[2]
-    """
-
-    """
-    # Doesn't work
-    # Doc: https://www.tensorflow.org/agents/api_docs/python/tf_agents/agents/DqnAgent?hl=nl
-    # Error: Network only supports action_specs with shape in [(), (1,)])
-    def testQNAgent(self):
-        
-        num_iterations = 250 # @param {type:"integer"}
-        collect_episodes_per_iteration = 2 # @param {type:"integer"}
-        replay_buffer_capacity = 2000 # @param {type:"integer"}
-
-        fc_layer_params = (100,)
-
-        learning_rate = 1e-3 # @param {type:"number"}
-        log_interval = 25 # @param {type:"integer"}
-        num_eval_episodes = 10 # @param {type:"integer"}
-        eval_interval = 50 # @param {type:"integer"}
-
-        q_net = q_network.QNetwork(
-            self.tf_env.observation_spec(),
-            self.tf_env.action_spec(),
-            fc_layer_params=fc_layer_params)
-        optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=learning_rate)
-
-        train_step_counter = tf.Variable(0)
-
-        agent = dqn_agent.DqnAgent(
-            self.tf_env.time_step_spec(),
-            self.tf_env.action_spec(),
-            q_network=q_net,
-            optimizer=optimizer,
-            td_errors_loss_fn=common.element_wise_squared_loss,
-            train_step_counter=train_step_counter)
-
-        agent.initialize()
-    """
-    """
-    # Doesn't work - not supposed to
-    # doc: https://www.tensorflow.org/agents/api_docs/python/tf_agents/agents/ReinforceAgent?hl=nl
-    # Error: Inputs to NormalProjectionNetwork must match the sample_spec.dtype
-    def testReinforceNormalProjectionNet(self):
-        # actor_net = actor_distribution_network.ActorDistributionNetwork(
-        #     self.tf_env.observation_spec(),
-        #     self.tf_env.action_spec(),
-        #     fc_layer_params=fc_layer_params)
-        
-        num_iterations = 250 # @param {type:"integer"}
-        collect_episodes_per_iteration = 2 # @param {type:"integer"}
-        replay_buffer_capacity = 2000 # @param {type:"integer"}
-
-        fc_layer_params = (100,)
-
-        learning_rate = 1e-3 # @param {type:"number"}
-        log_interval = 25 # @param {type:"integer"}
-        num_eval_episodes = 10 # @param {type:"integer"}
-        eval_interval = 50 # @param {type:"integer"}
-
-        actor_net = normal_projection_network.NormalProjectionNetwork(
-            self.tf_env.observation_spec())
-        optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=learning_rate)
-
-        train_step_counter = tf.compat.v2.Variable(0)
-
-        tf_agent = reinforce_agent.ReinforceAgent(
-            self.tf_env.time_step_spec(),
-            self.tf_env.action_spec(),
-            actor_network=actor_net,
-            optimizer=optimizer,
-            normalize_returns=True,
-            train_step_counter=train_step_counter)
-        tf_agent.initialize()
-    """
-    """
+    
     # Works!
     # https://github.com/tensorflow/agents/blob/master/docs/tutorials/6_reinforce_tutorial.ipynb
     def testReinforceActorDistributionNet(self):
         print("Starting testReinforceActorDistributionNet")
+        #region Hyperparameters from the example of the documentation
         num_iterations = 250 # @param {type:"integer"}
         collect_episodes_per_iteration = 2 # @param {type:"integer"}
         replay_buffer_capacity = 2000 # @param {type:"integer"}
@@ -209,6 +126,7 @@ class test(unittest.TestCase):
         log_interval = 25 # @param {type:"integer"}
         num_eval_episodes = 10 # @param {type:"integer"}
         eval_interval = 50 # @param {type:"integer"}
+        #endregion
 
         actor_net = actor_distribution_network.ActorDistributionNetwork(
             self.train_env.observation_spec(),
@@ -230,46 +148,18 @@ class test(unittest.TestCase):
         collect_policy = tf_agent.collect_policy
 
         print(self.compute_avg_return(self.train_env, collect_policy))
-    """
     
-    """
-    def testReinforceCriticNet(self):
-        num_iterations = 250 # @param {type:"integer"}
-        collect_episodes_per_iteration = 2 # @param {type:"integer"}
-        replay_buffer_capacity = 2000 # @param {type:"integer"}
-
-        fc_layer_params = (100,)
-
-        learning_rate = 1e-3 # @param {type:"number"}
-        log_interval = 25 # @param {type:"integer"}
-        num_eval_episodes = 10 # @param {type:"integer"}
-        eval_interval = 50 # @param {type:"integer"}
-
-        actor_net = actor_distribution_network.ActorDistributionNetwork(
-            self.train_env.observation_spec(),
-            self.train_env.action_spec(),
-            fc_layer_params=fc_layer_params)
-        optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=learning_rate)
-
-        train_step_counter = tf.compat.v2.Variable(0)
-
-        tf_agent = reinforce_agent.ReinforceAgent(
-            self.train_env.time_step_spec(),
-            self.train_env.action_spec(),
-            actor_network=actor_net,
-            optimizer=optimizer,
-            normalize_returns=True,
-            train_step_counter=train_step_counter)
-        tf_agent.initialize()
-    """
-    """
+    
     def testTd3(self):
+        #region Hyperparameters from the example of the documentation
         fc_layer_params = (100,)
 
         learning_rate = 1e-3 # @param {type:"number"}
         log_interval = 25 # @param {type:"integer"}
         num_eval_episodes = 10 # @param {type:"integer"}
         eval_interval = 50 # @param {type:"integer"}
+        #endregion
+        
         actor_net = actor_distribution_network.ActorDistributionNetwork(
             self.tf_env.observation_spec(),
             self.tf_env.action_spec(),
@@ -283,7 +173,7 @@ class test(unittest.TestCase):
         critic_optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=learning_rate)
 
         actor = tf_agents.agents.Td3Agent(
-            time_step_spec = self.tf_env.time_step_spec, 
+            time_step_spec = self.tf_env.time_step_spec(), 
             action_spec = self.tf_env.action_spec,
             actor_network = actor_net,
             critic_network = critic_net,
@@ -297,17 +187,11 @@ class test(unittest.TestCase):
             gradient_clipping=None, debug_summaries=False, summarize_grads_and_vars=False,
             train_step_counter=None, name=None)
         actor.initialize()
-    """
-    """
-    def normal_projection_net(self, action_spec, init_means_output_factor=0.1):
-        return normal_projection_network.NormalProjectionNetwork(
-            action_spec,
-            mean_transform=None,
-            state_dependent_std=True,
-            init_means_output_factor=init_means_output_factor,
-            std_transform=sac_agent.std_clip_transform,
-            scale_distribution=True)
-    """
+        collect_policy = actor.collect_policy
+
+        print(self.compute_avg_return(self.train_env, collect_policy))
+    
+    
     def normal_projection_net(self, action_spec,init_means_output_factor=0.1):
         return normal_projection_network.NormalProjectionNetwork(
             action_spec,
@@ -334,11 +218,12 @@ class test(unittest.TestCase):
         return total_return / num_episodes
         # avg_return = total_return / num_episodes
         # return avg_return.numpy()[0]
-    """
+
     # Works!
     # https://github.com/tensorflow/agents/blob/master/docs/tutorials/7_SAC_minitaur_tutorial.ipynb
     def testSAC(self):
         print("Starting testSAC")
+        #region Hyperparameters from the example of the documentation
         # use "num_iterations = 1e6" for better results,
         # 1e5 is just so this doesn't take too long. 
         num_iterations = 100000 # @param {type:"integer"}
@@ -365,7 +250,8 @@ class test(unittest.TestCase):
 
         # num_eval_episodes = 30 # @param {type:"integer"}
         eval_interval = 10000 # @param {type:"integer"}
-
+        #endregion
+        
         observation_spec = self.train_env.observation_spec()
         action_spec = self.train_env.action_spec()
 
@@ -405,4 +291,4 @@ class test(unittest.TestCase):
         collect_policy = tf_agent.collect_policy
 
         print(self.compute_avg_return(self.train_env, collect_policy))
-    """
+    
