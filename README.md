@@ -8,7 +8,7 @@ pandoc Memoire.md -t docx -o memoire.docx
 
 ## Install on windows
 
-Requirements: python 3.7.1, pip, venv
+Requirements: python>=3.7.1 and <=3.8.5, pip, venv
 
 ~~~~
 python -m venv env

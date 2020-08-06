@@ -17,25 +17,27 @@ import asyncio
 tf.compat.v1.enable_v2_behavior()
 
 class PyEnv(py_environment.PyEnvironment):
-    def __init__(self, size = 100, duration = 365):
-        self.duration = duration
-        self.size = size
+    def __init__(self):
+        self.duration = 30
+        self.size = 10
 
         # Places and products
         # Average size of places: 2000 visits per day
-        self.placesSizes = np.random.exponential(size=100) * 2000
+        self.placesSizes = np.sort(np.random.exponential(size = self.size) * 2000) # will we get better results that way?
+        #self.placesSizes = np.random.exponential(size = self.size) * 2000
         
         # Average cost per product: 10
-        self.productsCosts = np.random.exponential(size = 100) * 10
+        self.productsCosts = np.random.exponential(size = self.size) * 10
         # Average margin rate: 10%
-        self.productsUsualMarginRates = np.random.exponential(size = 100) / 10
+        self.productsUsualMarginRates = np.random.exponential(size = self.size) / 10
         # Products are on average bought once per hundred of visitors
-        self.productsUsualBuyingRates = np.random.exponential(size=100) /100
+        self.productsUsualBuyingRates = np.random.exponential(size = self.size) /100
         self.productsUsualPrices = self.productsCosts / (1 - self.productsUsualMarginRates)
 
         # Specs
         self.initial_observation = np.zeros((self.size,self.size), dtype=np.float32)
 
+        # Action is an array of all the product prices
         self._action_spec = array_spec.BoundedArraySpec(
             shape=(self.size,), dtype=np.float32, minimum=0, maximum=1000, name='action')
         
@@ -60,7 +62,7 @@ class PyEnv(py_environment.PyEnvironment):
     def _step(self, action):
         observation = [None] * len(self.placesSizes)
         reward = 0
-        # TODO parallelize this or use numpy to speed up
+        # TODO parallelize this loop or use numpy to speed up
         for i in range(len(self.placesSizes)):
             # Price elasticity: we'll consider that doubling the price divides the quantity by ten
             quantityLine = np.round((self.placesSizes[i]  * self.productsUsualBuyingRates) * (10 ** ((self.productsUsualPrices - action) / self.productsUsualPrices)))
