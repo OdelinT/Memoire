@@ -18,6 +18,7 @@ from tf_agents.replay_buffers import tf_uniform_replay_buffer
 from tf_agents.trajectories import trajectory
 from tf_agents.utils import common
 from tf_agents.policies import greedy_policy
+from tf_agents.policies import random_tf_policy
 import coloredlogs, logging
 from tf_agents.agents.ddpg import critic_network
 from tf_agents.agents.sac import sac_agent
@@ -115,7 +116,8 @@ class test(unittest.TestCase):
         utils.validate_py_environment(self.env, episodes=5)
     """
     
-    # Works at least until initialization
+    
+    # No error but reward=0 almost every time
     # https://github.com/tensorflow/agents/blob/master/docs/tutorials/6_reinforce_tutorial.ipynb
     def testReinforceActorDistributionNet(self):
         logging.info("Starting testReinforceActorDistributionNet")
@@ -161,43 +163,24 @@ class test(unittest.TestCase):
             max_length=replay_buffer_capacity)
 
         #region Agent training
-        # (Optional) Optimize by wrapping some of the code in a graph using TF function.
-        tf_agent.train = common.function(tf_agent.train)
-
-        # Reset the train step
-        tf_agent.train_step_counter.assign(0)
-
-        # Evaluate the agent's policy once before training.
-        avg_return = self.compute_avg_return(self.eval_env, tf_agent.policy, num_eval_episodes)
-        returns = [None] * int((num_iterations / eval_interval) +1)
-        returns[0] = avg_return
         
+        #regionAdditional parameters
+        initial_collect_steps = 10
+        #endregion
+        
+        #No complete episode found. REINFORCE requires full episodes to compute losses
+        #self.trainAvecDynamicStepDriver(tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval)
+        
+        # Return = 0
+        #self.trainAvecJusteReplayBuffer(tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval)
 
-        logging.info(f"Starting improving over {num_iterations} iterations")
-        for _ in range(num_iterations):
-            # Collect a few episodes using collect_policy and save to the replay buffer.
-            self.collect_episode(
-                self.train_env, tf_agent.collect_policy, replay_buffer, collect_episodes_per_iteration)
-
-            # Use data from the buffer and update the agent's network.
-            experience = replay_buffer.gather_all()
-            train_loss = tf_agent.train(experience)
-            replay_buffer.clear()
-
-            step = tf_agent.train_step_counter.numpy()
-
-            if step % log_interval == 0:
-                logging.info('step = {0}: loss = {1}'.format(step, train_loss.loss))
-
-            if step % eval_interval == 0:
-                avg_return = self.compute_avg_return(self.eval_env, tf_agent.policy, num_eval_episodes)
-                logging.info('step = {0}: Average Return = {1}'.format(step, avg_return))
-                returns[int(step / eval_interval)] = avg_return
+        # Return = 0
+        self.train3(tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval)
         
         #endregion
     
     """
-    # Works at least until initialization
+    # Error: One of the Tensors in `experience` has a time axis dim value '33', but we require dim value '2'.
     def testTd3(self):
         logging.info("Starting testTd3")
         #region Hyperparameters from the example of the documentation
@@ -246,36 +229,19 @@ class test(unittest.TestCase):
             max_length=replay_buffer_capacity)
 
         #region Agent training
-        # (Optional) Optimize by wrapping some of the code in a graph using TF function.
-        tf_agent.train = common.function(tf_agent.train)
+        
+        #regionAdditional parameters
+        initial_collect_steps = 0
+        #endregion
+        
+        #DynamicStepDriver takes too long time
+        #self.trainAvecDynamicStepDriver(tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval, 0)
 
-        # Reset the train step
-        tf_agent.train_step_counter.assign(0)
+        # One of the Tensors in `experience` has a time axis dim value '33', but we require dim value '2'
+        #self.trainAvecJusteReplayBuffer(tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval)
 
-        # Evaluate the agent's policy once before training.
-        avg_return = self.compute_avg_return(self.eval_env, tf_agent.policy, num_eval_episodes)
-        returns = [avg_return]
-
-        for i in range(num_iterations):
-            logging.info(f"Iteration {i+1} out of {num_iterations}")
-            # Collect a few episodes using collect_policy and save to the replay buffer.
-            self.collect_episode(
-                self.train_env, tf_agent.collect_policy, replay_buffer, collect_episodes_per_iteration)
-
-            # Use data from the buffer and update the agent's network.
-            experience = replay_buffer.gather_all()
-            train_loss = tf_agent.train(experience)
-            replay_buffer.clear()
-
-            step = tf_agent.train_step_counter.numpy()
-
-            if step % log_interval == 0:
-                logging.info('step = {0}: loss = {1}'.format(step, train_loss.loss))
-
-            if step % eval_interval == 0:
-                avg_return = self.compute_avg_return(self.eval_env, tf_agent.policy, num_eval_episodes)
-                logging.info('step = {0}: Average Return = {1}'.format(step, avg_return))
-                returns.append(avg_return)
+        # call() missing 1 required positional argument: 'network_state'
+        self.train3(tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval)
         #endregion
     """
         
@@ -284,14 +250,15 @@ class test(unittest.TestCase):
     # https://github.com/tensorflow/agents/blob/master/docs/tutorials/7_SAC_minitaur_tutorial.ipynb
     def testSAC(self):
         logging.info("Starting testSAC")
+
         #region Hyperparameters from the example of the documentation
         # use "num_iterations = 1e6" for better results,
         # 1e5 is just so this doesn't take too long. 
-        num_iterations = 250 # @param {type:"integer"}
+        num_iterations = 500 # @param {type:"integer"}
 
-        initial_collect_steps = 10000 # @param {type:"integer"} 
+        initial_collect_steps = 100 # @param {type:"integer"} 
         collect_steps_per_iteration = 1 # @param {type:"integer"}
-        replay_buffer_capacity = 1000000 # @param {type:"integer"}
+        replay_buffer_capacity = 100 # @param {type:"integer"}
 
         batch_size = 256 # @param {type:"integer"}
 
@@ -307,10 +274,10 @@ class test(unittest.TestCase):
         actor_fc_layer_params = (256, 256)
         critic_joint_fc_layer_params = (256, 256)
 
-        log_interval = 5000 # @param {type:"integer"}
+        log_interval = 50 # @param {type:"integer"}
 
         num_eval_episodes = 10 # @param {type:"integer"}
-        eval_interval = 10000 # @param {type:"integer"}
+        eval_interval = 100 # @param {type:"integer"}
 
         # parameters from other documentation examples
         collect_episodes_per_iteration = 2
@@ -366,14 +333,37 @@ class test(unittest.TestCase):
             data_spec=tf_agent.collect_data_spec,
             batch_size=self.train_env.batch_size,
             max_length=replay_buffer_capacity)
+        #endregion
+        
+        #region Agent training
+        
+        #DynamicStepDriver takes too long time
+        #self.trainAvecDynamicStepDriver(tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval)
+        
+        # One of the Tensors in `experience` has a time axis dim value '33', but we require dim value '2'
+        #self.trainAvecJusteReplayBuffer(tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval)
+
+        #Works! but very bad results and doesn't appear to be improving
+        #self.train3(tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval)
+        
+        #endregion
+    """
+
+    #region common methods for all agents
+    # https://github.com/tensorflow/agents/blob/master/docs/tutorials/7_SAC_minitaur_tutorial.ipynb
+    # DynamicStepDriver doesn't stop. Try with cuda ?
+    def trainAvecDynamicStepDriver(self, tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval, collect_steps_per_iteration=10):
         initial_collect_driver = dynamic_step_driver.DynamicStepDriver(
             self.train_env,
             collect_policy,
             observers=[replay_buffer.add_batch],
             num_steps=initial_collect_steps)
+        logging.info("Starting to run initial driver collection")
+        initial_collect_driver.run = common.function(initial_collect_driver.run)
         initial_collect_driver.run()
+        logging.info("Finished to run initial driver collection")
         dataset = replay_buffer.as_dataset(
-            num_parallel_calls=3, sample_batch_size=batch_size, num_steps=2).prefetch(3)
+            num_parallel_calls=3, sample_batch_size=64, num_steps=2).prefetch(3)
 
         iterator = iter(dataset)
         collect_driver = dynamic_step_driver.DynamicStepDriver(
@@ -381,19 +371,19 @@ class test(unittest.TestCase):
             collect_policy,
             observers=[replay_buffer.add_batch],
             num_steps=collect_steps_per_iteration)
-        #endregion
+        
 
         # (Optional) Optimize by wrapping some of the code in a graph using TF function.
         tf_agent.train = common.function(tf_agent.train)
         collect_driver.run = common.function(collect_driver.run)
-
+        
         logging.info("Reset the train step")
         # Reset the train step
         tf_agent.train_step_counter.assign(0)
 
         logging.info("Evaluate the agent's policy once before training")
         # Evaluate the agent's policy once before training.
-        avg_return = compute_avg_return(eval_env, eval_policy, num_eval_episodes)
+        avg_return = self.compute_avg_return(self.eval_env, tf_agent.policy, num_eval_episodes)
         returns = [avg_return]
 
         for i in range(num_iterations):
@@ -411,13 +401,13 @@ class test(unittest.TestCase):
                 print('step = {0}: loss = {1}'.format(step, train_loss.loss))
 
             if step % eval_interval == 0:
-                avg_return = compute_avg_return(eval_env, eval_policy, num_eval_episodes)
+                avg_return = self.compute_avg_return(self.eval_env, eval_policy, num_eval_episodes)
                 print('step = {0}: Average Return = {1}'.format(step, avg_return))
                 returns.append(avg_return)
 
-
-        
-        #region Agent training
+    # Error: One of the Tensors in `experience` has a time axis dim value '33', but we require dim value '2'.
+    # https://github.com/tensorflow/agents/blob/master/docs/tutorials/6_reinforce_tutorial.ipynb
+    def trainAvecJusteReplayBuffer(self, tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval, collect_episodes_per_iteration = 10):
         # (Optional) Optimize by wrapping some of the code in a graph using TF function.
         tf_agent.train = common.function(tf_agent.train)
 
@@ -448,11 +438,50 @@ class test(unittest.TestCase):
                 avg_return = self.compute_avg_return(self.eval_env, tf_agent.policy, num_eval_episodes)
                 logging.info('step = {0}: Average Return = {1}'.format(step, avg_return))
                 returns.append(avg_return)
-        #endregion
-        
-    """
 
-    #region common methods for all agents
+    # https://github.com/tensorflow/agents/blob/master/docs/tutorials/1_dqn_tutorial.ipynb
+    def train3(self, tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval, collect_steps_per_iteration = 10):
+        random_policy = random_tf_policy.RandomTFPolicy(self.train_env.time_step_spec(),
+                                                        self.train_env.action_spec())
+
+        self.collect_data(self.train_env, random_policy, replay_buffer, steps=100)
+        dataset = replay_buffer.as_dataset(
+            num_parallel_calls=3, 
+            sample_batch_size=64, 
+            num_steps=2).prefetch(3)
+
+        iterator = iter(dataset)
+
+        # (Optional) Optimize by wrapping some of the code in a graph using TF function.
+        tf_agent.train = common.function(tf_agent.train)
+
+        # Reset the train step
+        tf_agent.train_step_counter.assign(0)
+
+        # Evaluate the agent's policy once before training.
+        avg_return = self.compute_avg_return(self.eval_env, tf_agent.policy, num_eval_episodes)
+        returns = [avg_return]
+
+        for _ in range(num_iterations):
+            # Collect a few steps using collect_policy and save to the replay buffer.
+            for _ in range(collect_steps_per_iteration):
+                self.collect_step(self.train_env, tf_agent.collect_policy, replay_buffer)
+
+            # Sample a batch of data from the buffer and update the agent's network.
+            experience, unused_info = next(iterator)
+            train_loss = tf_agent.train(experience).loss
+
+            step = tf_agent.train_step_counter.numpy()
+
+            if step % log_interval == 0:
+                print('step = {0}: loss = {1}'.format(step, train_loss))
+
+            if step % eval_interval == 0:
+                avg_return = self.compute_avg_return(self.eval_env, tf_agent.policy, num_eval_episodes)
+                print('step = {0}: Average Return = {1}'.format(step, avg_return))
+                returns.append(avg_return)
+
+    
     def normal_projection_net(self, action_spec,init_means_output_factor=0.1):
         return normal_projection_network.NormalProjectionNetwork(
             action_spec,
@@ -496,6 +525,19 @@ class test(unittest.TestCase):
 
             if traj.is_boundary():
                 episode_counter += 1
+    # From https://github.com/tensorflow/agents/blob/master/docs/tutorials/1_dqn_tutorial.ipynb
+    def collect_step(self, environment, policy, buffer):
+        time_step = environment.current_time_step()
+        action_step = policy.action(time_step)
+        next_time_step = environment.step(action_step.action)
+        traj = trajectory.from_transition(time_step, action_step, next_time_step)
+
+        # Add trajectory to the replay buffer
+        buffer.add_batch(traj)
+    # From https://github.com/tensorflow/agents/blob/master/docs/tutorials/1_dqn_tutorial.ipynb
+    def collect_data(self, env, policy, buffer, steps):
+        for _ in range(steps):
+            self.collect_step(env, policy, buffer)
     #endregion
 
 

@@ -23,8 +23,7 @@ class PyEnv(py_environment.PyEnvironment):
 
         # Places and products
         # Average size of places: 2000 visits per day
-        self.placesSizes = np.sort(np.random.exponential(size = self.size) * 2000) # will we get better results that way?
-        #self.placesSizes = np.random.exponential(size = self.size) * 2000
+        self.placesSizes = np.random.exponential(size = self.size) * 2000
         
         # Average cost per product: 10
         self.productsCosts = np.random.exponential(size = self.size) * 10
