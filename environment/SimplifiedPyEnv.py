@@ -13,17 +13,18 @@ from tf_agents.environments import wrappers
 #from .place import place
 #from .product import product
 import asyncio
+import random
 
 tf.compat.v1.enable_v2_behavior()
 
-class PyEnv(py_environment.PyEnvironment):
+class SimplifiedPyEnv(py_environment.PyEnvironment):
     def __init__(self):
-        self.duration = 30
-        self.size = 10
+        self.duration = 7
+        self.size = 1
 
         # Places and products
         # Average size of places: 2000 visits per day
-        self.placesSizes = np.random.exponential(size = self.size) * 2000
+        self.placeSize = random.random() * 2000
         
         # Average cost per product: 10
         self.productsCosts = np.random.exponential(size = self.size) * 10
@@ -34,14 +35,14 @@ class PyEnv(py_environment.PyEnvironment):
         self.productsUsualPrices = self.productsCosts / (1 - self.productsUsualMarginRates)
 
         # Specs
-        self.initial_observation = np.zeros((self.size,self.size), dtype=np.float32)
+        self.initial_observation = np.zeros((self.size,), dtype=np.float32)
 
-        # Action is an array of all the product prices
+        # Action is an array of all the product prices, explained in product cost multiplication
         self._action_spec = array_spec.BoundedArraySpec(
-            shape=(self.size,), dtype=np.float32, minimum=0, maximum=1000, name='action')
+            shape=(self.size,), dtype=np.float32, minimum=1, maximum=100, name='action')
         
         self._observation_spec = array_spec.ArraySpec(
-            shape = (self.size,self.size),dtype=np.float32,name = 'observation')
+            shape = (self.size,),dtype=np.float32,name = 'observation')
         
         self._state = 0
         self._episode_ended = False
@@ -59,17 +60,12 @@ class PyEnv(py_environment.PyEnvironment):
         return ts.restart(self.initial_observation)
     
     def _step(self, action):
-        observation = [None] * len(self.placesSizes)
-        reward = 0
-        # TODO parallelize this loop or use numpy to speed up
-        for i in range(len(self.placesSizes)):
-            # Price elasticity: we'll consider that doubling the price divides the quantity by ten
-            quantityLine = np.round((self.placesSizes[i]  * self.productsUsualBuyingRates) * (10 ** ((self.productsUsualPrices - action) / self.productsUsualPrices)))
+        prices = self.productsCosts * action
+        observation = np.round((self.placeSize  * self.productsUsualBuyingRates) * (10 ** ((self.productsUsualPrices - prices) / self.productsUsualPrices)))
 
-            marginPerProduct = (action - self.productsCosts) * quantityLine
+        marginPerProduct = (prices - self.productsCosts) * observation
 
-            reward += marginPerProduct.sum()
-            observation[i] = quantityLine
+        reward = marginPerProduct.sum()
         # convert to numpy array of float32, otherwise not accepted by specs
         observation = np.array(observation, dtype=np.float32)
         if self._state < self.duration:

@@ -5,6 +5,7 @@ import tensorflow as tf
 from tf_agents.networks import q_network, normal_projection_network, actor_distribution_network
 from tf_agents.agents.dqn import dqn_agent
 from environment.PyEnv import PyEnv
+from environment.SimplifiedPyEnv import SimplifiedPyEnv
 from tf_agents.environments import tf_py_environment
 from tf_agents.utils import common
 import tf_agents
@@ -22,6 +23,9 @@ from tf_agents.policies import random_tf_policy
 import coloredlogs, logging
 from tf_agents.agents.ddpg import critic_network
 from tf_agents.agents.sac import sac_agent
+from tf_agents.agents.ppo import ppo_agent
+
+from tf_agents.networks import value_network
 
 import numpy as np
 #endregion
@@ -34,13 +38,94 @@ class test(unittest.TestCase):
         self.env = PyEnv()
         self.env2 = PyEnv()
         self.env3 = PyEnv()
-        self.tf_env = tf_py_environment.TFPyEnvironment(self.env)
-        self.train_env = tf_py_environment.TFPyEnvironment(self.env2)
-        self.eval_env = tf_py_environment.TFPyEnvironment(self.env3)
+        self.senv = SimplifiedPyEnv()
+        self.senv2 = SimplifiedPyEnv()
+        self.senv3 = SimplifiedPyEnv()
 
+        self.tf_env = tf_py_environment.TFPyEnvironment(self.senv)
+        self.train_env = tf_py_environment.TFPyEnvironment(self.senv2)
+        self.eval_env = tf_py_environment.TFPyEnvironment(self.senv3)
+        logging.info(self.train_env)
+
+    """
+    def testSimplifiedMyValidate(self):
+        self.senv._reset()
+        size = self.senv.size
+        #region Test environment parameters generation
+        logging.info("Test environment parameters generation")
+        for value in self.senv.productsCosts:
+            if value < 0:
+                logging.error("At least one product cost < 0")
+        for value in self.senv.productsUsualMarginRates:
+            if value < 0:
+                logging.error("At least one margin rate < 0")
+            if value > 1:
+                logging.error("At least one margin rate > 1")
+        for value in self.senv.productsUsualBuyingRates:
+            if value <= 0:
+                logging.error("At least one buying rate <= 0")
+        for i in range(len(self.senv.productsUsualPrices)):
+            if self.senv.productsUsualPrices[i] < self.senv.productsCosts[i]:
+                logging.error("At least one usual price smaller than product cost")
+        #endregion
+
+        #region Test environment credibility with different prices
+        logging.info("Test environment credibility with different prices")
+        observation = self.senv._step(self.senv.productsCosts)
+        logging.info(f"Product costs: {observation}")
+        costReward = observation.reward
+        if observation.reward != 0:
+            logging.error("Error: If we sell at product cost, there should be no margin")
+
+        observation = self.senv._step(self.senv.productsCosts * 2)
+        logging.info(f"Product costs *2: {observation}")
+        if observation.reward <= 0 and np.sum(observation.observation) > 0:
+            logging.error("Error: If we sell at more than product cost, there should be a margin")
+
+        observation = self.senv._step(self.senv.productsCosts * 10)
+        logging.info(f"Product costs *10: {observation}")
+        if observation.reward <= 0 and np.sum(observation.observation) > 0:
+            logging.error("Error: If we sell at more than product cost, there should be a margin")
+
+        observation = self.senv._step(self.senv.productsUsualPrices)
+        logging.info(f"Usual buying price: {observation}")
+        usualReward = observation.reward
+
+        observation = self.senv._step(self.senv.productsUsualPrices * 2)
+        logging.info(f"Usual buying price *2: {observation}")
+        logging.info(f"Compared to usual: {observation.reward / usualReward}")
+
+        observation = self.senv._step(self.senv.productsUsualPrices * 4)
+        logging.info(f"Usual buying price *4: {observation}")
+        logging.info(f"Compared to usual: {observation.reward / usualReward}")
+
+        observation = self.senv._step(self.senv.productsUsualPrices * 10)
+        logging.info(f"Usual buying price *10: {observation}")
+        logging.info(f"Compared to usual: {observation.reward / usualReward}")
+
+        observation = self.senv._step(np.zeros(size))
+        logging.info(f"0: {observation}")
+        if observation.reward >= 0.:
+            logging.error("Error: If prices are 0, we should sell and have a deficit")
+
+        observation = self.senv._step(np.zeros(size) + 1)
+        logging.info(f"1: {observation}")
+        if observation.reward >= 0:
+            logging.error("Error: If prices are 1 and average cost 10, we should sell and have a deficit")
+
+        observation = self.senv._step(np.zeros(size) + 1000)
+        logging.info(f"1000: {observation}")
+        if observation.reward > usualReward:
+            logging.error("Error: An unusual price such as 1000 shouldn't cause a best result than the usual price. Error ratio: ", observation.reward / usualReward)
+        #endregion
+    
+    def testSimplifiedValidate(self):
+        utils.validate_py_environment(self.senv, episodes=5)
+    """
     """
     def testMyValidate(self):
         self.env._reset()
+        size = self.env.size
         #region Test environment parameters generation
         logging.info("Test environment parameters generation")
         for value in self.env.placesSizes:
@@ -96,17 +181,17 @@ class test(unittest.TestCase):
         logging.info(f"Usual buying price *10: {observation}")
         logging.info(f"Compared to usual: {observation.reward / usualReward}")
 
-        observation = self.env._step(np.zeros(100))
+        observation = self.env._step(np.zeros(size))
         logging.info(f"0: {observation}")
         if observation.reward >= 0.:
             logging.error("Error: If prices are 0, we should sell and have a deficit")
 
-        observation = self.env._step(np.zeros(100) + 1)
+        observation = self.env._step(np.zeros(size) + 1)
         logging.info(f"1: {observation}")
         if observation.reward >= 0:
             logging.error("Error: If prices are 1 and average cost 10, we should sell and have a deficit")
 
-        observation = self.env._step(np.zeros(100) + 1000)
+        observation = self.env._step(np.zeros(size) + 1000)
         logging.info(f"1000: {observation}")
         if observation.reward > usualReward:
             logging.error("Error: An unusual price such as 1000 shouldn't cause a best result than the usual price. Error ratio: ", observation.reward / usualReward)
@@ -122,14 +207,14 @@ class test(unittest.TestCase):
     def testReinforce(self):
         logging.info("Starting testReinforceActorDistributionNet")
         #region Hyperparameters from the example of the documentation
-        num_iterations = 10000 # @param {type:"integer"}
+        num_iterations = 100000 # @param {type:"integer"}
         collect_episodes_per_iteration = 2 # @param {type:"integer"}
         replay_buffer_capacity = 2000 # @param {type:"integer"}
 
         fc_layer_params = (100,)
 
         learning_rate = 1e-3 # @param {type:"number"}
-        log_interval = 500 # @param {type:"integer"}
+        log_interval = 10000 # @param {type:"integer"}
         num_eval_episodes = 10 # @param {type:"integer"}
         eval_interval = 2000 # @param {type:"integer"}
         #endregion
@@ -171,7 +256,7 @@ class test(unittest.TestCase):
         #No complete episode found. REINFORCE requires full episodes to compute losses
         #self.trainAvecDynamicStepDriver(tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval)
         
-        # Return = 0
+        Return = 0
         self.trainAvecJusteReplayBuffer(tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval)
 
         # No complete episode found. REINFORCE requires full episodes to compute losses.
@@ -244,7 +329,68 @@ class test(unittest.TestCase):
         self.train3(tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval)
         #endregion
     """
+    """
+    # Error: Network only supports action_specs with shape in [(), (1,)])
+    # Doesn't fit what is in the doc example
+    # https://www.tensorflow.org/agents/tutorials/1_dqn_tutorial
+    def testDQN(self):
+        initial_collect_steps = 10
+        num_iterations = 1000
+        num_eval_episodes = 10
+        eval_interval = 200
+        log_interval = 100
+
+        #region DQN params from doc
+        fc_layer_params = (100,)
+
+        q_net = q_network.QNetwork(
+            self.train_env.observation_spec(),
+            self.train_env.action_spec(),
+            fc_layer_params=fc_layer_params)
+        optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=learning_rate)
+
+        train_step_counter = tf.Variable(0)
+
+        tf_agent = dqn_agent.DqnAgent(
+            self.train_env.time_step_spec(),
+            self.train_env.action_spec(),
+            q_network=q_net,
+            optimizer=optimizer,
+            td_errors_loss_fn=common.element_wise_squared_loss,
+            train_step_counter=train_step_counter)
+
+        tf_agent.initialize()
+        eval_policy = tf_agent.policy
+        collect_policy = tf_agent.collect_policy
+        self.train_env = random_tf_policy.RandomTFPolicy(
+            train_env.time_step_spec(),
+            self.train_env.action_spec())
+        replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
+            data_spec=tf_agent.collect_data_spec,
+            batch_size=self.train_env.batch_size,
+            max_length=replay_buffer_max_length)
+        collect_data(self.train_env, random_policy, replay_buffer, steps=100)
+        dataset = replay_buffer.as_dataset(
+            num_parallel_calls=3, 
+            sample_batch_size=batch_size, 
+            num_steps=2).prefetch(3)
+
+        iterator = iter(dataset)
+        #endregion
+
+        #region Agent training
+        
+        #DynamicStepDriver takes too long time
+        #self.trainAvecDynamicStepDriver(tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval)
+        
+        # self.trainAvecJusteReplayBuffer(tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval, collect_episodes_per_iteration)
+
+        self.train3(tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval, 2)
+        
+        #endregion
+    """
     
+    #Has interesting results
     # https://github.com/tensorflow/agents/blob/master/docs/tutorials/7_SAC_minitaur_tutorial.ipynb
     def testSAC(self):
         logging.info("Starting testSAC")
@@ -254,7 +400,7 @@ class test(unittest.TestCase):
         # 1e5 is just so this doesn't take too long. 
         num_iterations = 100000 # @param {type:"integer"}
 
-        initial_collect_steps = 1000 # @param {type:"integer"} 
+        initial_collect_steps = 100 # @param {type:"integer"} 
         collect_steps_per_iteration = 100 # @param {type:"integer"}
         replay_buffer_capacity = 10000 # @param {type:"integer"}
 
@@ -269,14 +415,14 @@ class test(unittest.TestCase):
         reward_scale_factor = 1.0 # @param {type:"number"}
         gradient_clipping = None # @param
 
-        actor_fc_layer_params = (256, 256)
-        critic_joint_fc_layer_params = (256, 256)
+        actor_fc_layer_params = (10, 10)
+        critic_joint_fc_layer_params = (10, 10)
 
-        log_interval = 1000 # @param {type:"integer"}
+        log_interval = 5000 # @param {type:"integer"}
 
         # en-dehord de l'apprentissage, nombre d'actions prises pour mesurer l'évolution de la récompense
         num_eval_episodes = 10 # @param {type:"integer"}
-        eval_interval = 5000 # @param {type:"integer"}
+        eval_interval = 20000 # @param {type:"integer"}
 
         # Must be equal to 2. Don't ask why
         collect_episodes_per_iteration = 2
@@ -340,14 +486,69 @@ class test(unittest.TestCase):
         #self.trainAvecDynamicStepDriver(tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval)
         
         # Error: One of the Tensors in `experience` has a time axis dim value '33', but we require dim value '2'
-        # self.trainAvecJusteReplayBuffer(tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval, collect_episodes_per_iteration)
+        #self.trainAvecJusteReplayBuffer(tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval, collect_episodes_per_iteration)
 
-        #Works! but very bad results and doesn't appear to be improving
-        self.train3(tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval, 2)
-        
+        #Has interesting results. First improves a lot, then regresses
+        self.train3(tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval)
         #endregion
     
+    """
+    # https://www.tensorflow.org/agents/api_docs/python/tf_agents/agents/ppo/ppo_clip_agent/PPOClipAgent
+    def testPPOClip(self):
+        #region variables
+        learning_rate = 1e-3
+        replay_buffer_capacity = 100000
+        initial_collect_steps = 10
+        num_iterations = 100000
+        num_eval_episodes = 10
+        eval_interval = 10000
+        log_interval = 2000
+        actor_fc_layer_params = (100, 100)
+        #endregion
 
+        #region Initialize agent
+        optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=learning_rate)
+        actor_net = actor_distribution_network.ActorDistributionNetwork(
+            self.train_env.observation_spec(),
+            self.train_env.action_spec(),
+            fc_layer_params=actor_fc_layer_params)
+        value_net = value_network.ValueNetwork(
+            self.train_env.observation_spec())
+        tf_agent = ppo_agent.PPOAgent(
+            self.train_env.time_step_spec(),
+            self.train_env.action_spec(),
+            optimizer = optimizer,
+            actor_net = actor_net,
+            value_net = value_net)
+
+        tf_agent.initialize()
+        #endregion
+
+        #region Set training variables
+        logging.info("Set training variables")
+        eval_policy = greedy_policy.GreedyPolicy(tf_agent.policy)
+        collect_policy = tf_agent.collect_policy
+
+        logging.info(self.compute_avg_return(self.train_env, eval_policy))
+        
+        replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
+            data_spec=tf_agent.collect_data_spec,
+            batch_size=self.train_env.batch_size,
+            max_length=replay_buffer_capacity)
+        #endregion
+        
+        #region Agent training
+        
+        #DynamicStepDriver takes too long time
+        #self.trainAvecDynamicStepDriver(tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval)
+        
+        # Always 0 reward
+        self.trainAvecJusteReplayBuffer(tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations=num_iterations, num_eval_episodes=num_eval_episodes, eval_interval=eval_interval, log_interval=log_interval)
+
+        #Works! but very bad results and doesn't appear to be improving
+        #self.train3(tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval, 2)
+        #endregion
+    """
     #region common methods for all agents
     # https://github.com/tensorflow/agents/blob/master/docs/tutorials/7_SAC_minitaur_tutorial.ipynb
     # DynamicStepDriver doesn't stop. Try with cuda ?
@@ -440,7 +641,7 @@ class test(unittest.TestCase):
                 returns.append(avg_return)
 
     # https://github.com/tensorflow/agents/blob/master/docs/tutorials/1_dqn_tutorial.ipynb
-    def train3(self, tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval, collect_steps_per_iteration = 2):
+    def train3(self, tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval, collect_steps_per_iteration = 10):
         random_policy = random_tf_policy.RandomTFPolicy(self.train_env.time_step_spec(),
                                                         self.train_env.action_spec())
 
@@ -448,6 +649,7 @@ class test(unittest.TestCase):
         dataset = replay_buffer.as_dataset(
             num_parallel_calls=3, 
             sample_batch_size=64, 
+            #num_steps=collect_steps_per_iteration).prefetch(3)
             num_steps=2).prefetch(3)
 
         iterator = iter(dataset)
@@ -462,10 +664,11 @@ class test(unittest.TestCase):
         avg_return = self.compute_avg_return(self.eval_env, tf_agent.policy, num_eval_episodes)
         returns = [avg_return]
 
-        for _ in range(num_iterations):
+        for i in range(num_iterations):
             # Collect a few steps using collect_policy and save to the replay buffer.
+            #for _ in range(collect_steps_per_iteration):
             for _ in range(2):
-                self.collect_step(self.train_env, tf_agent.collect_policy, replay_buffer)
+                self.collect_step(self.train_env, tf_agent.collect_policy, replay_buffer, i)
 
             # Sample a batch of data from the buffer and update the agent's network.
             experience, unused_info = next(iterator)
@@ -527,7 +730,7 @@ class test(unittest.TestCase):
             if traj.is_boundary():
                 episode_counter += 1
     # From https://github.com/tensorflow/agents/blob/master/docs/tutorials/1_dqn_tutorial.ipynb
-    def collect_step(self, environment, policy, buffer):
+    def collect_step(self, environment, policy, buffer, loop_number = None):
         time_step = environment.current_time_step()
         action_step = policy.action(time_step)
         next_time_step = environment.step(action_step.action)
