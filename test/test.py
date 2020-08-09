@@ -284,12 +284,10 @@ class test(unittest.TestCase):
         #region Hyperparameters from the example of the documentation
         # use "num_iterations = 1e6" for better results,
         # 1e5 is just so this doesn't take too long. 
-        self.num_iterations = 5000
-        self.log_interval = 200 
-
-        # en-dehord de l'apprentissage, nombre d'actions prises pour mesurer l'évolution de la récompense
+        self.num_iterations = 10000
+        self.log_interval = 2500
+        self.eval_interval = 2500
         self.num_eval_episodes = 100
-        self.eval_interval = 200 
 
         self.collect_steps_per_iteration = 10
         self.initial_collect_steps = self.collect_steps_per_iteration
@@ -363,7 +361,8 @@ class test(unittest.TestCase):
             #endregion
 
             #region Agent training results
-            self.compute_avg_return(self.eval_env, eval_policy, self.num_eval_episodes, display=True)
+            logging.info('Test agent result')
+            self.compute_avg_return(self.eval_env, eval_policy, self.num_eval_episodes, display=False)
             #endregion
         except Exception as e:
             logging.error(e)
@@ -609,8 +608,8 @@ class test(unittest.TestCase):
                 logging.info('step = {0}: loss = {1}'.format(i, train_loss))
 
             if i % eval_interval == 0:
-                avg_return = self.compute_avg_return(self.train_env, greedy_policy.GreedyPolicy(tf_agent.policy), num_eval_episodes)
-                logging.info('step = {0}: Average Return = {1}'.format(i, avg_return))
+                logging.info('step = {0}:'.format(i))
+                avg_return = self.compute_avg_return(self.eval_env, greedy_policy.GreedyPolicy(tf_agent.policy), num_eval_episodes)
                 returns.append(avg_return)
 
     
