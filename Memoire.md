@@ -446,3 +446,8 @@ No entiendo todo, mais il y a peut-être quelque chose à en tirer pour induire 
 > https://arxiv.org/pdf/1703.02702.pdf
 
 "Robust Adversarial Reinforcement Learning" -> des choses à en tirer ?
+
+
+Différents algos de RL
+
+> https://spinningup.openai.com/en/latest/spinningup/rl_intro2.html
