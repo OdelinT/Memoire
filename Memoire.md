@@ -29,18 +29,24 @@ La définition formelle en statistique de biais, "différence entre la valeur de
 - Dans quelle mesure ce biais influence-t-il le résultat de prédictions basées sur l'apprentissage automatique ?
 
 
-### Question sur les noms
+### Définitions
 
-Le français "apprentissage automatique" est-il vraiment synonyme de "machine learning" en anglais ?
+__Définitions issues du Journal officiel n° 0285 du 09/12/2018 https://www.legifrance.gouv.fr/jo_pdf.do?id=JORFTEXT000037783813 :__
 
-Cela n'est pas certain quand on compare les fréquences de ces expressions au cours du temps.
+Apprentissage automatique : "Processus par lequel un  algorithme évalue et  améliore ses performances sans l’intervention d’un programmeur, en répétant son exécution sur des jeux de données jusqu’à obtenir, de manière régulière, des résultats pertinents".
 
-Soit l'expression "apprentissage automatique" était porteuse d'un tout autre sens dans les années 1960, soit il s'agit de deux notions différentes, l'apprentissage automatique englobant le machine learning.
+Le journal officiel le traduit par "machine learning" en anglais. Cela n'est pas certain quand on compare les fréquences de ces expressions au cours du temps avec Ngrams viewer.
+
+Soit l'expression "apprentissage automatique" était porteuse d'un tout autre sens dans les années 1960, soit il s'agit de deux notions différentes avec le même nom.
+
+Apprentissage automatique dans le corpus francophone :
 
 ![Fréquences de "apprentissage automatique" en français](images/frequences_aa_fr.PNG)
 
+Machine learning dans le corpus anglophone :
 ![Fréquences de "machine learning" en anglais](images/frequences_ml_en.PNG)
 
+Apprentissage par renforcement : "Apprentissage automatique dans lequel un programme extérieur évalue positivement ou négative-ment les  résultats successifs de  l’algorithme, l’accumulation des résultats permettant à  l’algorithme d’améliorer ses performances jusqu’à ce qu’il atteigne un objectif préalablement fixé."
 
 # I- Revue de littérature
 
@@ -51,6 +57,8 @@ Soit l'expression "apprentissage automatique" était porteuse d'un tout autre se
 __Pourquoi parler de la régression ?__
 
 Dans le cas d'une régression, la question peut sembler triviale.
+
+Si confusion entre corrélation et causalité il y a, ça n'est pas au niveau des algorithmes d'apprentissage automatique, qui n'étudient que les corrélations. C'est lors de l'utilisation de ces algorithmes qu'il peut y avoir confusion.
 
 Puisqu'une régression consiste à mesurer les corrélations entre toutes les variables afin d'en estimer une à partir des autres, il suffit que certaines variables soient corrélées avec la celle à estimer pour biaiser les résultats. Pour combattre ce biais, il faut qu'un être humain analyse le contexte pour déterminer s'il y a causalité entre les variables.
 
@@ -63,7 +71,7 @@ Cependant, cette étude montre que même dans le cas d'une régression il existe
 
 Si le cas de la régression semblait trivial, c'est peut-être parce que l'algorithme n'a pas l'occasion d'interagir avec son environnement pour tester ce qui est une corrélation et ce qui est une causalité.
 
-On peut d’ailleurs diiférencier trois types de variables qui construisent la réalité avec laquelle interagit un agent :
+On peut d’ailleurs différencier trois types de variables qui construisent la réalité avec laquelle interagit un agent :
 
 - les données intrinsèques à l'environnement (une partie des observations)
 
@@ -71,7 +79,7 @@ On peut d’ailleurs diiférencier trois types de variables qui construisent la 
 
 - Les sorties issues des actions sur l'environnement (la récompense et une partie des observations)
 
-Au sein des algorithmes, ces variables sont découpées de la sorte :
+Au sein des librairies que nous utiliseront, ces variables sont découpées de la sorte :
 
 - Les observations (qu'elles dépendent des actions de l'agent ou non)
 
@@ -79,7 +87,9 @@ Au sein des algorithmes, ces variables sont découpées de la sorte :
 
 - La récompense (ce que l'agent doit maximiser)
 
-Ainsi, contrairement au cas d'une régression, il est déterminé dès le départ sur quoi l'agent peut agir. Il ne peut pas vérifier l'existence de causalité entre deux variables qui ne dépendent pas de lui
+Ainsi, contrairement au cas d'une régression, il est déterminé dès le départ sur quoi l'agent peut agir. L'agent ne peut pas vérifier l'existence de causalité entre deux variables qui ne dépendent pas de lui. 
+
+On pourrait se dire que l'algorithme fera explorera l'environnement à sa disposition pour maximiser sa récompense indépendamment de toute notion de toute notion de causalité. Cependant, il reste possible d'expérimenter si et dans quelle mesure l'algorithme tombe dans des biais.
 
 
 ## B- Les différents cas de corrélation
@@ -109,7 +119,7 @@ Dans le cas où A, la quantité vendue, est corrélé à une variable B
 
 - La quantité vendue cause le résultat net
 
-- Le prix cause la quantité vendue
+- Le prix de vente cause la quantité vendue
 
 - Le nombre de ventes cause la fréquentation à venir, qui cause le nombre de ventes à venir
 
@@ -129,7 +139,7 @@ Quand un agent est développé pour répondre à un besoin spécifique, on peut 
 
 #### Exemple de ce problème dans notre expérimentation
 
-Si notre agent doit acheter des marchandises puis les vendre, sa récompense est sa marge sur coûts variables.
+Si notre agent doit acheter des marchandises puis les vendre, avec comme récompense la marge sur coûts variables.
 
 Pour lui éviter d'essayer des cas triviaux et a priori contreproductifs, on serait tenté de le paramétrer de telle sorte qu'il ne fixe jamais de prix de vente inférieur au prix d'achat. Ce qui serait une bonne idée sans compter que :
 
@@ -139,7 +149,7 @@ Pour lui éviter d'essayer des cas triviaux et a priori contreproductifs, on ser
 
 - Vendre ou acheter à perte peut parfois être une obligation légale 
 
-  - Exemple : EDF qui achète à un prix plancher l'électricité issue d'énergies renouvelables sur le marché de l'électricité
+  - Exemple : EDF qui achète à un prix plancher l'électricité issue d'énergies renouvelables sur le marché à terme de l'électricité
 
 ### b) Coïncidence
 
@@ -240,29 +250,9 @@ Dans TF, on peut créer deux types d'environnement : py_environment.PyEnvironmen
 
 - Récompense: la somme, pour chaque lieu et/ou produit, du prix de vente auquel on soustrait le prix d'achat.
 
-### b) Paramètres à ajouter
+### b) Explication
 
-Afin d'obtenir des résultats plus intéressants, on peut multiplier les paramètres possibles :
 
-- élasticité demande selon offre
-
-- prix plafond et prix plancher
-
-- un seul lieu d'achat/vente ou bien plusieurs avec des prix différents
-
-- les caractéristiques des lieux d'échange (nombre de clients, intérêt pour le produit, prix plafond et plancher)
-
-- un seul ou plusieurs produits
-
-- produits qui répondent ou non au même besoin
-
-- coûts des produits identiques ou non
-
-- coûts des produits qui changent au fil du temps ou non
-
-- quelle part d'aléatoire
-
-- avoir autant de produits que voulu, ou devoir également préciser une quantité à acheter ?
 
 ## C- Les biais à implémenter
 
@@ -286,11 +276,13 @@ En utilisant le biais du razoir d'Ockham (privilégier les modèles les plus sim
 
 - créer un biais du razoir : 
 
-  - Créer deux variables corrélées, l'une expliquant, pas l'autre, pour que l'agent en prenne une au hasard
+  - Créer deux variables corrélées, l'une expliquant beaucoup les observations, l'autre moins, pour que l'agent en prenne la première
   
-  - Alors qu'en fait, c'était l'autre qui était liée par une relation de causalité à la récompense (ou les deux)
+  - Inverser l'importance des variables au fil du temps
 
-ça peut marcher ? vérifier les implémentations des algos
+- Comparer les résultats avec des tests directement sur la seconde variable
+
+Si on observe l'inverse
 
 Ou bien, on verra bien une fois qu'on a testé
 
@@ -361,6 +353,9 @@ Face à des données d'apprentissage trop "propres", le modèle obtenu peut deve
 
 Cependant, je ne parle que de corrélation vs causalité. Ce problème est hors périmètre puisque la causalité est réelle.
 
+#### 5- Algorithmes
+
+(10/08) les tests ne sont faits qu'avec l'algorithme SAC (Soft-Actor Critic) car il s'agit de celui qui a donné rapidement les meilleurs résultats. Tous les résultats ne sont pas généralisables à tous les autres agents, particulièrement ceux de catégories différentes.
 
 # Conclusion
 
@@ -404,19 +399,7 @@ Cependant, je ne parle que de corrélation vs causalité. Ce problème est hors 
 
 > https://arxiv.org/pdf/cmp-lg/9612001.pdf
 
-Biais du razoir d'Ockham ?!
-
-- Etape 1- créer un biais du razoir : 
-
-  - Créer deux variables corrélées, l'une expliquant, pas l'autre, pour que l'agent en prenne une au pif
-  
-- Mais tadaaaaa ! En fait c'était l'autre la bonne !!!
-
-ça peut marcher ce truc ? vérifier les implémentations des algos
-
-
 > https://people.csail.mit.edu/malte/pub/papers/2019-iclr-variance.pdf
-
 
 > https://dl.acm.org/doi/10.5555/3305381.3305400
 
@@ -451,3 +434,19 @@ No entiendo todo, mais il y a peut-être quelque chose à en tirer pour induire 
 Différents algos de RL
 
 > https://spinningup.openai.com/en/latest/spinningup/rl_intro2.html
+
+## Autres sources
+
+https://fr.wikipedia.org/wiki/Dilemme_biais-variance
+
+https://fr.wikipedia.org/wiki/Biais_algorithmique#Biais_cognitifs
+
+https://www.ibm.com/blogs/ibm-france/2019/09/26/apprentissage-automatique-et-biais/
+
+http://www.prclaudeberaud.fr/?129-erreur-ecologique-erreur-atomiste-lepidemiologie-contextuelle
+
+## Idées
+
+"On qualifie cette erreur faite dans les hypothèses du modèle de « biais »." "Le biais sera d’autant plus faible que le modèle approchera la complexité du problème. Inversement, si le modèle est trop simple, le biais sera très élevé"
+
+> https://dataanalyticspost.com/Lexique/biais/
