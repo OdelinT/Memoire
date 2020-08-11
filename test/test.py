@@ -205,7 +205,8 @@ class test(unittest.TestCase):
         utils.validate_py_environment(self.env, episodes=5)
     """
     
-    
+    #region Agent initialization methods
+
     # No error but reward=0 almost every time
     # https://github.com/tensorflow/agents/blob/master/docs/tutorials/6_reinforce_tutorial.ipynb
     def Reinforce(self):
@@ -280,93 +281,6 @@ class test(unittest.TestCase):
         #endregion
         return tf_agent
 
-    def testAll(self):
-        #region Hyperparameters from the example of the documentation
-        # use "num_iterations = 1e6" for better results,
-        # 1e5 is just so this doesn't take too long. 
-        self.num_iterations = 10000
-        self.log_interval = 2500
-        self.eval_interval = 2500
-        self.num_eval_episodes = 100
-
-        self.collect_steps_per_iteration = 10
-        self.initial_collect_steps = self.collect_steps_per_iteration
-        self.replay_buffer_capacity = 1000
-
-        self.batch_size = 256 
-
-        self.learning_rate = 3e-4
-        self.critic_learning_rate = self.learning_rate
-        self.actor_learning_rate = self.learning_rate
-        self.alpha_learning_rate = self.learning_rate
-        self.target_update_tau = 0.005 
-        self.target_update_period = 1 
-        self.gamma = 0.99 
-        self.reward_scale_factor = 1.0 
-        self.gradient_clipping = None # @param
-
-        self.fc_layer_params = (256, 256)
-        self.actor_fc_layer_params = self.fc_layer_params
-        self.critic_joint_fc_layer_params = self.fc_layer_params
-        #endregion
-        training=3
-        algo='SAC'
-        #for algo in ["SAC", "PPO", "TD3", "DQN", "Reinforce", "DDPG", "BehavioralCloning"]:
-        #    for training in [2, 3]:
-
-        logging.info('----------------------------------')
-        logging.info(f'Starting to test {algo} with training {training}')
-        logging.info('----------------------------------')
-        try:
-            if algo == 'SAC':
-                tf_agent = self.SAC()
-            elif algo == 'DQN':
-                tf_agent = self.DQN()
-            elif algo == 'TD3':
-                tf_agent = self.TD3()
-            elif algo == 'Reinforce':
-                tf_agent = self.Reinforce()
-            elif algo == 'PPO':
-                tf_agent = self.PPO()
-            elif algo == 'DDPG':
-                tf_agent = self.DDPG()
-            elif algo == 'BehavioralCloning':
-                tf_agent = self.BehavioralCloning()
-            else:
-                raise(f"No algorithm matches {algo}")
-
-            eval_policy = greedy_policy.GreedyPolicy(tf_agent.policy)
-            collect_policy = tf_agent.collect_policy
-            random_policy  = random_tf_policy.RandomTFPolicy(
-                self.train_env.time_step_spec(),
-                self.train_env.action_spec())
-            replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
-                data_spec=tf_agent.collect_data_spec,
-                batch_size=self.train_env.batch_size,
-                max_length=self.replay_buffer_capacity)
-            #region Agent training
-            logging.info(f'Starting agent training over {self.num_iterations} steps')
-            if training==1:
-                #DynamicStepDriver takes too long time
-                self.trainAvecDynamicStepDriver(tf_agent=tf_agent, collect_policy=collect_policy, replay_buffer=replay_buffer, initial_collect_steps=self.initial_collect_steps, num_iterations=self.num_iterations, num_eval_episodes=self.num_eval_episodes, eval_interval=self.eval_interval, log_interval=self.log_interval)
-            elif training == 2:
-                # Error: One of the Tensors in `experience` has a time axis dim value '33', but we require dim value '2'
-                self.trainAvecJusteReplayBuffer(tf_agent=tf_agent, collect_policy=collect_policy, replay_buffer=replay_buffer, initial_collect_steps=self.initial_collect_steps, num_iterations=self.num_iterations, num_eval_episodes=self.num_eval_episodes, eval_interval=self.eval_interval, log_interval=self.log_interval)
-            elif training ==3:
-                #Has interesting results. First improves a lot, then regresses
-                self.train3(tf_agent=tf_agent, collect_policy=collect_policy, replay_buffer=replay_buffer, initial_collect_steps=self.initial_collect_steps, num_iterations=self.num_iterations, num_eval_episodes=self.num_eval_episodes, eval_interval=self.eval_interval, log_interval=self.log_interval)
-            else:
-                logging.error(f"No training match {training}")
-            logging.info('Agent training finished')
-            #endregion
-
-            #region Agent training results
-            logging.info('Test agent result')
-            self.compute_avg_return(self.eval_env, eval_policy, self.num_eval_episodes, display=False)
-            #endregion
-        except Exception as e:
-            logging.error(e)
-    
     def SAC(self):
         #region Agent initialization
         observation_spec = self.train_env.observation_spec()
@@ -477,6 +391,97 @@ class test(unittest.TestCase):
         #endregion
         return tf_agent
 
+    #endregion
+
+    def testAll(self):
+        #region Hyperparameters from the example of the documentation
+        # use "num_iterations = 1e6" for better results,
+        # 1e5 is just so this doesn't take too long. 
+        self.num_iterations = 10000
+        self.log_interval = 2500
+        self.eval_interval = 2500
+        self.num_eval_episodes = 100
+
+        self.collect_steps_per_iteration = 10
+        self.initial_collect_steps = self.collect_steps_per_iteration
+        self.replay_buffer_capacity = 1000
+
+        self.batch_size = 256 
+
+        self.learning_rate = 3e-4
+        self.critic_learning_rate = self.learning_rate
+        self.actor_learning_rate = self.learning_rate
+        self.alpha_learning_rate = self.learning_rate
+        self.target_update_tau = 0.005 
+        self.target_update_period = 1 
+        self.gamma = 0.99 
+        self.reward_scale_factor = 1.0 
+        self.gradient_clipping = None # @param
+
+        self.fc_layer_params = (256, 256)
+        self.actor_fc_layer_params = self.fc_layer_params
+        self.critic_joint_fc_layer_params = self.fc_layer_params
+        #endregion
+        training=3
+        algo='SAC'
+        #for algo in ["SAC", "PPO", "TD3", "DQN", "Reinforce", "DDPG", "BehavioralCloning"]:
+        #    for training in [2, 3]:
+
+        logging.info('----------------------------------')
+        logging.info(f'Starting to test {algo} with training {training}')
+        logging.info('----------------------------------')
+        try:
+            if algo == 'SAC':
+                tf_agent = self.SAC()
+            elif algo == 'DQN':
+                tf_agent = self.DQN()
+            elif algo == 'TD3':
+                tf_agent = self.TD3()
+            elif algo == 'Reinforce':
+                tf_agent = self.Reinforce()
+            elif algo == 'PPO':
+                tf_agent = self.PPO()
+            elif algo == 'DDPG':
+                tf_agent = self.DDPG()
+            elif algo == 'BehavioralCloning':
+                tf_agent = self.BehavioralCloning()
+            else:
+                raise(f"No algorithm matches {algo}")
+
+            eval_policy = greedy_policy.GreedyPolicy(tf_agent.policy)
+            collect_policy = tf_agent.collect_policy
+            random_policy  = random_tf_policy.RandomTFPolicy(
+                self.train_env.time_step_spec(),
+                self.train_env.action_spec())
+            replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
+                data_spec=tf_agent.collect_data_spec,
+                batch_size=self.train_env.batch_size,
+                max_length=self.replay_buffer_capacity)
+            #region Agent training
+            logging.info(f'Starting agent training over {self.num_iterations} steps')
+            if training==1:
+                #DynamicStepDriver takes too long time
+                self.trainAvecDynamicStepDriver(tf_agent=tf_agent, collect_policy=collect_policy, replay_buffer=replay_buffer, initial_collect_steps=self.initial_collect_steps, num_iterations=self.num_iterations, num_eval_episodes=self.num_eval_episodes, eval_interval=self.eval_interval, log_interval=self.log_interval)
+            elif training == 2:
+                # Error: One of the Tensors in `experience` has a time axis dim value '33', but we require dim value '2'
+                self.trainAvecJusteReplayBuffer(tf_agent=tf_agent, collect_policy=collect_policy, replay_buffer=replay_buffer, initial_collect_steps=self.initial_collect_steps, num_iterations=self.num_iterations, num_eval_episodes=self.num_eval_episodes, eval_interval=self.eval_interval, log_interval=self.log_interval)
+            elif training ==3:
+                #Has interesting results. First improves a lot, then regresses
+                self.train3(tf_agent=tf_agent, collect_policy=collect_policy, replay_buffer=replay_buffer, initial_collect_steps=self.initial_collect_steps, num_iterations=self.num_iterations, num_eval_episodes=self.num_eval_episodes, eval_interval=self.eval_interval, log_interval=self.log_interval)
+            else:
+                logging.error(f"No training match {training}")
+            logging.info('Agent training finished')
+            #endregion
+
+            #region Agent training results
+            logging.info('Test agent result')
+            self.compute_avg_return(self.eval_env, eval_policy, self.num_eval_episodes, display=False)
+            #endregion
+
+            logging.info(replay_buffer.as_dataset())
+        except Exception as e:
+            logging.error(e)
+    
     #region common methods for all agents
     # https://github.com/tensorflow/agents/blob/master/docs/tutorials/7_SAC_minitaur_tutorial.ipynb
     # DynamicStepDriver doesn't stop. Try with cuda ?
@@ -529,7 +534,7 @@ class test(unittest.TestCase):
                 logging.info('step = {0}: loss = {1}'.format(step, train_loss.loss))
 
             if step % eval_interval == 0:
-                avg_return = self.compute_avg_return(self.eval_env, eval_policy, num_eval_episodes)
+                avg_return = self.compute_avg_return(self.eval_env, greedy_policy.GreedyPolicy(tf_agent.policy), num_eval_episodes)
                 logging.info('step = {0}: Average Return = {1}'.format(step, avg_return))
                 returns.append(avg_return)
 
@@ -571,8 +576,9 @@ class test(unittest.TestCase):
     # https://github.com/tensorflow/agents/blob/master/docs/tutorials/1_dqn_tutorial.ipynb
     def train3(self, tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval, collect_steps_per_iteration = 10):
         # Initialize data collection with random tests
-        random_policy = random_tf_policy.RandomTFPolicy(self.train_env.time_step_spec(),
-                                                        self.train_env.action_spec())
+        random_policy = random_tf_policy.RandomTFPolicy(
+            self.train_env.time_step_spec(), 
+            self.train_env.action_spec())
 
         self.collect_data(self.train_env, random_policy, replay_buffer, steps=2)
         dataset = replay_buffer.as_dataset(

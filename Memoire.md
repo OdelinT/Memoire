@@ -57,6 +57,8 @@ Pour un algorithme d'apprentissage par renforcement, l'objectif n'est pas tant d
 
 - Peut-on utiliser l'apprentissage par renforcement pour différencier des corrélations de causalités ?
 
+    - Très général... Comment le traduire en une expérience ?
+
 - Dans quelle mesure ce biais influence-t-il le résultat de prédictions basées sur l'apprentissage automatique ?
 
 - En cas de correction d'un modèle biaisé, avec quelle inertie les algorithmes apprennent de leurs erreurs ?
@@ -64,9 +66,17 @@ Pour un algorithme d'apprentissage par renforcement, l'objectif n'est pas tant d
 
 __Autres comparaisons possibles__
 
-- Quelle est l'efficacité l'agent qui ne peut apprendre qu'avec des données ayant déjà été observées et biaisées (apprentissage supervisé) 
+- Quelle est l'efficacité l'agent qui ne peut apprendre qu'avec des données ayant déjà été observées et biaisées (apprentissage supervisé)
 
-- Versus l'efficacité si on pré-entraine l'agent avec des données ayant déjà été observées puis qu'on le laisse se renforcer sans randomisation (apprentissage supervisé et par renforcement) 
+    - En utilisant le replaybuffer ?
+
+- Versus l'efficacité si on pré-entraine l'agent avec des données ayant déjà été observées puis qu'on le laisse se renforcer sans randomisation (apprentissage supervisé et par renforcement)
+
+    - Randomisation, n'est-elle pas en quelque sorte déjà faite par l'algo lors de l'exploration ?
+
+    - Si oui, dans quelle mesure l'algo est-il sensible à l'évolution de paramètres qu'il ne peut observer ?
+
+    - Dans tous les cas, __comment la développer__ ?
 
 - Versus l'efficacité si on pré-entraine l'agent avec des données ayant déjà été observées puis qu'on le laisse se renforcer avec randomisation (apprentissage supervisé et par renforcement)
 
