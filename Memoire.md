@@ -1,8 +1,10 @@
+# __Etude de biais dans l'apprentissage automatique__
+
+## Plus précisément, l'effet cigogne dans le cas de l'apprentissage automatique par renforcement
+
 # Introduction
 
-## L'effet cigogne dans l'apprentissage automatique par renforcement
-
-### Réflexion
+## Réflexion
 
 Tout vient d'une réflexion sur la différence entre corrélation et causalité. C'est un problème qui survient systématiquement lorsqu'on fait des statistiques descriptives à partir de données dont on dispose. 
 
@@ -16,22 +18,17 @@ Comment peut-on répondre à ce biais automatiquement ?
 
 On peut imaginer un algorithme qui va apprendre non pas à partir de données en entrée, mais face à une situation, en lui permettant d'agir dessus.
 
-On peut donc ajouter d'une randomisation au sein d'un algorithme d'apprentissage par renforcement pour améliorer ses résultats, ou du moins pour voir si ses résultats évoluent.
+On peut donc imaginer ajouter d'une randomisation au sein d'un algorithme d'apprentissage par renforcement pour améliorer ses résultats, ou du moins pour voir si ses résultats évoluent.
 
-### Problématique
+## Définitions
 
-Par "biais", on considèrera la définition suivante : "une démarche ou un procédé qui engendre des erreurs".
+Effet cigogne : confusion entre corrélation et causalité
 
-La définition formelle en statistique de biais, "différence entre la valeur de l'espérance d'un estimateur et la valeur qu'il est censé estimer" correspondrait à un problème de régression. Mais pour un algorithme d'apprentissage par renforcement, l'objectif n'est pas tant d'estimer au plus proche un résultat que de maximiser ce dernier.
+Corrélation : lien mesurable statistiquement entre deux variables
 
-- Peut-on utiliser l'apprentissage par renforcement pour différencier ces corrélations de causalités ?
+Causalité : Lien de cause à effet entre deux phénomènes
 
-- Dans quelle mesure ce biais influence-t-il le résultat de prédictions basées sur l'apprentissage automatique ?
-
-
-### Définitions
-
-__Définitions issues du Journal officiel n° 0285 du 09/12/2018 https://www.legifrance.gouv.fr/jo_pdf.do?id=JORFTEXT000037783813 :__
+__Définitions issues principalement du Journal officiel n° 0285 du 09/12/2018 https://www.legifrance.gouv.fr/jo_pdf.do?id=JORFTEXT000037783813 :__
 
 Apprentissage automatique : "Processus par lequel un  algorithme évalue et  améliore ses performances sans l’intervention d’un programmeur, en répétant son exécution sur des jeux de données jusqu’à obtenir, de manière régulière, des résultats pertinents".
 
@@ -47,6 +44,38 @@ Machine learning dans le corpus anglophone :
 ![Fréquences de "machine learning" en anglais](images/frequences_ml_en.PNG)
 
 Apprentissage par renforcement : "Apprentissage automatique dans lequel un programme extérieur évalue positivement ou négative-ment les  résultats successifs de  l’algorithme, l’accumulation des résultats permettant à  l’algorithme d’améliorer ses performances jusqu’à ce qu’il atteigne un objectif préalablement fixé."
+
+Agent : algorithme d'apprentissage par renforcement.
+
+## Problématique
+
+Par "biais", on considèrera la définition suivante : "une démarche ou un procédé qui engendre des erreurs".
+
+La définition formelle en statistique de biais, "différence entre la valeur de l'espérance d'un estimateur et la valeur qu'il est censé estimer" correspondrait à un problème de régression. 
+
+Pour un algorithme d'apprentissage par renforcement, l'objectif n'est pas tant d'estimer au plus proche une variable que d'en maximiser une. Cela dit, comme les algorithmes d'apprentissage automatique utilisent des indicateurs statistiques sensibles aux biais, ils sont aussi soumis au dilemme biais-variance (le biais diminue à mesure que la complexité du modèle s'approche de la complexité de l'environnement).
+
+- Peut-on utiliser l'apprentissage par renforcement pour différencier des corrélations de causalités ?
+
+- Dans quelle mesure ce biais influence-t-il le résultat de prédictions basées sur l'apprentissage automatique ?
+
+- En cas de correction d'un modèle biaisé, avec quelle inertie les algorithmes apprennent de leurs erreurs ?
+
+
+__Autres comparaisons possibles__
+
+- Quelle est l'efficacité l'agent qui ne peut apprendre qu'avec des données ayant déjà été observées et biaisées (apprentissage supervisé) 
+
+- Versus l'efficacité si on pré-entraine l'agent avec des données ayant déjà été observées puis qu'on le laisse se renforcer sans randomisation (apprentissage supervisé et par renforcement) 
+
+- Versus l'efficacité si on pré-entraine l'agent avec des données ayant déjà été observées puis qu'on le laisse se renforcer avec randomisation (apprentissage supervisé et par renforcement)
+
+Questions supplémentaires, dans le cas où je développe un algorithme qui effectue explicitement une randomisation pour tester si les corrélations observées sont des causalités :
+
+- Versus l'efficacité de l'apprentissage par renforcement seul avec randomisation
+
+- Versus l'efficacité de l'apprentissage par renforcement seul sans randomisation
+
 
 # I- Revue de littérature
 
@@ -201,11 +230,15 @@ Faire interagir un agent suivant plusieurs algorithmes d'apprentissage par renfo
 
 Pour créer des situation biaisées, on préfèrera utiliser une librairie permettant de créer un environnement.
 
-J'ai choisi (/ commencé à utiliser) Tensorflow, car la documentation semble claire et bien fournie, et que la librairie implémente plusieurs algorithmes.
+J'ai choisi Tensorflow, car la documentation semble claire et bien fournie, et que la librairie implémente de nombreux algorithmes de différentes catégories.
 
-Diagramme de classes :
+Diagramme de classes simplifié :
 
 ![](images/diag_class.png)
+
+Le code est quant à lui sur le repository suivant : https://github.com/OdelinT/Memoire
+
+(tant qu'il n'est pas public, me demander pour y accéder)
 
 ## A- L'agent
 
@@ -258,7 +291,7 @@ Dans TF, on peut créer deux types d'environnement : py_environment.PyEnvironmen
 
 ### Données non représentatives
 
-Un paramètre inconnu (la taille des magasins) est créé, et influence les résultats. Ensuite, on modifie ce paramètre, ou on ajoute des situations en moyenne différente (plus grands ou plus petits), et on observe combien de temps l'algo se laissera berner (aka on mesure son inertie)
+Un paramètre inconnu (la taille des magasins) est créé, et influence les résultats. Ensuite, on modifie ce paramètre, ou on ajoute des situations en moyenne différente (plus grands ou plus petits), et on observe combien de temps l'algo se laissera berner (aka on mesure son inertie).
 
 A une étape de l'algorithme, arbitrairement jouter ou supprimer des magasins ou produits avec des caractéristiques non représentatives de la population de départ.
 
@@ -276,32 +309,15 @@ En utilisant le biais du razoir d'Ockham (privilégier les modèles les plus sim
 
 - créer un biais du razoir : 
 
-  - Créer deux variables corrélées, l'une expliquant beaucoup les observations, l'autre moins, pour que l'agent en prenne la première
+  - Créer deux variables corrélées, l'une expliquant beaucoup les observations, l'autre moins, pour que l'agent se concentre sur la première
   
-  - Inverser l'importance des variables au fil du temps
+  - Inverser l'importance de ces variables au fil du temps
 
 - Comparer les résultats avec des tests directement sur la seconde variable
 
-Si on observe l'inverse
-
-Ou bien, on verra bien une fois qu'on a testé
-
-
 # III-  Analyse des résultats
 
-Questions auxquelles on souhaitait répondre :
 
-- Quelle est l'efficacité l'agent qui ne peut apprendre qu'avec des données ayant déjà été observées et biaisées (apprentissage supervisé) 
-
-- Versus l'efficacité si on pré-entraine l'agent avec des données ayant déjà été observées puis qu'on le laisse se renforcer sans randomisation (apprentissage supervisé et par renforcement) 
-
-- Versus l'efficacité si on pré-entraine l'agent avec des données ayant déjà été observées puis qu'on le laisse se renforcer avec randomisation (apprentissage supervisé et par renforcement)
-
-Questions supplémentaires, dans le cas où je développe un algorithme qui effectue explicitement une randomisation pour tester si les corrélations observées sont des causalités :
-
-- Versus l'efficacité de l'apprentissage par renforcement seul avec randomisation
-
-- Versus l'efficacité de l'apprentissage par renforcement seul sans randomisation
 
 ## A- Si la réponse est explicite
 
