@@ -55,7 +55,7 @@ La définition formelle en statistique de biais, "différence entre la valeur de
 
 Pour un algorithme d'apprentissage par renforcement, l'objectif n'est pas tant d'estimer au plus proche une variable que d'en maximiser une. Cela dit, comme les algorithmes d'apprentissage automatique utilisent des indicateurs statistiques sensibles aux biais, ils sont aussi soumis au dilemme biais-variance (le biais diminue à mesure que la complexité du modèle s'approche de la complexité de l'environnement).
 
-- Peut-on utiliser l'apprentissage par renforcement pour différencier des corrélations de causalités ?
+- Peut-on utiliser l'apprentissage par renforcement pour différencier des corrélations de causalités ? Pour prouver l'existence de causalités ?
 
     - Très général... Comment le traduire en une expérience ?
 
@@ -64,7 +64,7 @@ Pour un algorithme d'apprentissage par renforcement, l'objectif n'est pas tant d
 - En cas de correction d'un modèle biaisé, avec quelle inertie les algorithmes apprennent de leurs erreurs ?
 
 
-__Autres comparaisons possibles__
+### Autres comparaisons possibles
 
 - Quelle est l'efficacité l'agent qui ne peut apprendre qu'avec des données ayant déjà été observées et biaisées (apprentissage supervisé)
 
@@ -85,6 +85,16 @@ Questions supplémentaires, dans le cas où je développe un algorithme qui effe
 - Versus l'efficacité de l'apprentissage par renforcement seul avec randomisation
 
 - Versus l'efficacité de l'apprentissage par renforcement seul sans randomisation
+
+### L'apprentissage automatique pour prouver l'existence de causalité ?
+
+La question de confusion entre corrélation et causalité dans le cas de l'apprentissage automatique peut être considéré comme triviale du point de vue des algorithmes. En effet, ceux-ci n'étudient pas les causalités, seulement des corrélations. C'est au moment où ces algorithmes sont utilisés au sein d'une application que l'intelligence humaine (des développeurs, des analystes) va biaiser la situation.
+
+Cependant, peut-on utiliser des algos d'apprentissage par renforcement pour trouver/prouver des relations de causalité entre des variables ?
+
+Pour les variables de ses actions, on peut se dire que oui : il suffit de le laisser agir pour qu'il  fasse ou non varier les autres observations et la récompense.
+
+Cependant, si la récompense augmente, et que les observations évoluent de façon linéaire au fil du temps cela ne prouve pas forcément que les actions font s'améliorer la récompense. Il est possible que la seule relation de causalité soit non pas entre les actions d'un côté, la récompense et les observations de l'autre, mais entre le temps et ces dernières.
 
 
 # I- Revue de littérature
@@ -129,6 +139,14 @@ Au sein des librairies que nous utiliseront, ces variables sont découpées de l
 Ainsi, contrairement au cas d'une régression, il est déterminé dès le départ sur quoi l'agent peut agir. L'agent ne peut pas vérifier l'existence de causalité entre deux variables qui ne dépendent pas de lui. 
 
 On pourrait se dire que l'algorithme fera explorera l'environnement à sa disposition pour maximiser sa récompense indépendamment de toute notion de toute notion de causalité. Cependant, il reste possible d'expérimenter si et dans quelle mesure l'algorithme tombe dans des biais.
+
+### c) Exemples réels
+
+Dans le cas de l'application de sélection de CV d'Amazon qui défavorisait les profils féminins, l'erreur vient du fait qu'on ait utilisé des données biaisées (des recrutements ayant eu lieu durant 10 années). 
+
+Derrière l'expression "l'application défavorise les profils féminins", on pourrait comprendre "l'algorithme suppose qu'il y a une causalité entre le genre d'un individu et ses compétences". Or, il s'agit davantage de "l'algorithme observe une corrélation entre le genre des individus et leur proportion au sein des recrutements à laquelle il lui a été demandé de correspondre". 
+
+Le problème n'est donc pas intrinsèque à l'algorithme, mais dû aux données en entrée, et à la décision de partir de ces données pour obtenir ce résultat. Il s'agit d'un biais présent dans les données d'apprentissage, ainsi que d'une erreur humaine de confusion entre corrélation et causalité, les concepteurs ayant supposé que les choix de recrutement passés étaient des décisions sinon optimales, au moins de bons exemples vers lesquels tendre, alors que ces choix étaient marqués d'erreurs humaines.
 
 
 ## B- Les différents cas de corrélation
@@ -227,6 +245,7 @@ Conclusion : l'apprentissage par renforcement gagne sur le long terme face à un
 
 Les algos y sont-ils sensibles ? Causalité au début qui décroit avec le temps, mais l'algo continue dans le sens initial ?
 
+Testable, mais consiste surtout à mesurer la capacité de l'algorithme à évoluer face à un changement du poids de ses variables
 
 ### e) Tous biais confondus
 
