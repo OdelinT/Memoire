@@ -245,7 +245,7 @@ Conclusion : l'apprentissage par renforcement gagne sur le long terme face à un
 
 Les algos y sont-ils sensibles ? Causalité au début qui décroit avec le temps, mais l'algo continue dans le sens initial ?
 
-Testable, mais consiste surtout à mesurer la capacité de l'algorithme à évoluer face à un changement du poids de ses variables
+Testable, mais consiste surtout à mesurer l'inertie de l'algorithme à un changement du poids de ses variables
 
 ### e) Tous biais confondus
 
@@ -289,9 +289,11 @@ Algorithmes présents dans TF :
 
 ### b) Ajouter une étape de randomisation
 
+Dans tensorflow, en faisant quelques explorations en random_policy
+
 ### c) Configuration et enregistrement des résultats
 
-TODO: réussir à les faire marcher, puis écrire une boucle for qui enregistre les résultats de chaque algo pour une configuration de l'environnement donnée
+Outils prévus à cet effet dans tensorflow : Replay buffer, et sa méthode As_dataset. Plus qu'à comprendre comment itérer dessus, car un '
 
 ## B- L'environnement
 
@@ -318,9 +320,24 @@ Dans TF, on peut créer deux types d'environnement : py_environment.PyEnvironmen
 
 ## C- Les biais à implémenter
 
+### Trop paramétrer l'environnement
+
+Comme mentionné plus tôt, on peut être tenté de contraindre notre agent dans ses actions lui éviter d'essayer des action qui nous paraissent contreproductives.
+
+> https://arxiv.org/pdf/1907.02908.pdf
+
+Dans notre cas, on peut en effet afin d'obtenir des résultats plus rapidement interdire à notre environnement de vendre à un prix inférieur à son coût unitaire.
+
+Ici, l'action correspond au prix auquel on vend un produit, exprimé en un coeficient multiplicateur du coût unitaire de ce produit.
+
+~~~ Python
+self._action_spec = array_spec.BoundedArraySpec(
+    shape=(1,), dtype=np.float32, minimum=1, maximum=100, name='action')
+~~~
+
 ### Données non représentatives
 
-Un paramètre inconnu (la taille des magasins) est créé, et influence les résultats. Ensuite, on modifie ce paramètre, ou on ajoute des situations en moyenne différente (plus grands ou plus petits), et on observe combien de temps l'algo se laissera berner (aka on mesure son inertie).
+Un paramètre inconnu (la taille des magasins) est créé, et influence les résultats. Ensuite, on modifie ce paramètre, ou on ajoute des situations en moyenne différente (plus grands ou plus petits), et on observe l'inertie de l'agent en comparant ses résultats à ceux qu'il aurait obtenu sur l'environnement directement à l'étape finale.
 
 A une étape de l'algorithme, arbitrairement jouter ou supprimer des magasins ou produits avec des caractéristiques non représentatives de la population de départ.
 
@@ -344,9 +361,51 @@ En utilisant le biais du razoir d'Ockham (privilégier les modèles les plus sim
 
 - Comparer les résultats avec des tests directement sur la seconde variable
 
+
+
 # III-  Analyse des résultats
 
+__PLAN A__
 
+## Biais d'un environnement trop paramétré
+
+__CHIFFRES et commit exact de l'expérience ?__
+
+Avec certains algorithmes, on obtient les premiers résultats positifs dès les premières itérations si le prix minimal est le coût unitaire, au bout de plusieurs milliers d'itérations si le prix minimal est de 0.
+
+Cependant, ce genre d'approche peut empêcher l'agent d'être optimal dans certains cas :
+
+- Péremption d'un produit
+
+- Un produit d'appel peut être vendu à perte afin de permettre de vendre plus au final (essence à la station-service d'un hypermarché, par exemple)
+
+Pour le cas d'un produit d'appel, nous ne verrons pas ici de mesure du manque à gagner possible, car celui-ci ne peut dépendre que de cas réels très spécifiques.
+
+Pour le cas de la péremption :
+
+__Si on suppose qu'un produit périmé à un prix supérieur ou égal à son coût ne se vendra pas__ (hypothèse coûteuse en soi) :
+
+Il existe des magasins spécialisés sur les produits périmés. Dans cet exemple, ceux-ci sont vendus avec un taux de réduction de 30% par rapport à un prix en magasin :
+
+> https://www.francetvinfo.fr/sante/alimentation/video-le-supermarche-anti-gaspi-qui-vend-des-produits-perimes_3595515.html
+
+Le taux de marge de la distribution alimentaire, très soumise aux questions de péremption, est selon l'INSEE compris entre 13% et 27% (on retiendra 20%).
+
+> https://www.insee.fr/fr/statistiques/:~:text=Pour%20les%20produits%20alimentaires,%20les,de%20produits%20%C3%A0%20l'autre.
+
+Les pertes représentent 3,3% du poid des denrées alimentaires transitant par la distribution (on supposera le même ordre de grandeur en valeur) 
+
+> https://www.ademe.fr/sites/default/files/assets/documents/pertes-gaspillages-alimentaires-etat-lieux-201605-synt.pdf page 8
+
+Empêcher un agent de vendre à perte des denrées alimentaires peut occasionner un manque à gagner de l'ordre de 3,3% des denrées vendues à 70% de 120% de leur coût.
+
+Soit un manque à gagner de 3,3% * 70% * 120% ~= 2,8% de ses coûts, soit (2,8 / 120%) / 2,9 ~= 80% de la marge opérationnelle courante d'une entreprise de grande distribution telle que Carrefour.
+
+> https://bfmbusiness.bfmtv.com/entreprise/carrefour-a-renoue-avec-les-benefices-en-2019-apres-deux-annees-dans-le-rouge-1865256.html#:~:text=Quant%20%C3%A0%20la%20marge%20op%C3%A9rationnelle,r%C3%A9sultat%20net%20part%20du%20groupe).
+
+
+
+__PLAN B__
 
 ## A- Si la réponse est explicite
 

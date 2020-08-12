@@ -1,12 +1,13 @@
 #region imports
+from environment.PyEnv import PyEnv
+from environment.SimplifiedPyEnv import SimplifiedPyEnv
+from environment.VerySimplifiedPyEnv import VerySimplifiedPyEnv
 import unittest
 import copy
 from tf_agents.environments import utils
 import tensorflow as tf
 from tf_agents.networks import q_network, normal_projection_network, actor_distribution_network
 from tf_agents.agents.dqn import dqn_agent
-from environment.PyEnv import PyEnv
-from environment.SimplifiedPyEnv import SimplifiedPyEnv
 from tf_agents.environments import tf_py_environment
 from tf_agents.utils import common
 import tf_agents
@@ -27,6 +28,7 @@ from tf_agents.agents.sac import sac_agent
 from tf_agents.agents.ppo import ppo_agent
 from tf_agents.agents.ddpg import ddpg_agent
 from tf_agents.agents.behavioral_cloning import behavioral_cloning_agent
+import pickle
 
 
 from tf_agents.networks import value_network
@@ -45,12 +47,89 @@ class test(unittest.TestCase):
         self.senv = SimplifiedPyEnv()
         self.senv2 = copy.deepcopy(self.senv)
         self.senv3 = copy.deepcopy(self.senv)
+        self.vsenv = VerySimplifiedPyEnv()
+        self.vsenv2 = copy.deepcopy(self.senv)
+        self.vsenv3 = copy.deepcopy(self.senv)
 
-        self.tf_env = tf_py_environment.TFPyEnvironment(self.senv)
-        self.train_env = tf_py_environment.TFPyEnvironment(self.senv2)
-        self.eval_env = tf_py_environment.TFPyEnvironment(self.senv3)
+        self.tf_env = tf_py_environment.TFPyEnvironment(self.vsenv)
+        self.train_env = tf_py_environment.TFPyEnvironment(self.vsenv2)
+        self.eval_env = tf_py_environment.TFPyEnvironment(self.vsenv3)
         logging.info(self.train_env)
+    """
+    def testSimplifiedMyValidate(self):
+        self.senv._reset()
+        size = self.senv.size
+        #region Test environment parameters generation
+        logging.info("Test environment parameters generation")
+        for value in self.senv.productsCosts:
+            if value < 0:
+                logging.error("At least one product cost < 0")
+        for value in self.senv.productsUsualMarginRates:
+            if value < 0:
+                logging.error("At least one margin rate < 0")
+            if value > 1:
+                logging.error("At least one margin rate > 1")
+        for value in self.senv.productsUsualBuyingRates:
+            if value <= 0:
+                logging.error("At least one buying rate <= 0")
+        for i in range(len(self.senv.productsUsualPrices)):
+            if self.senv.productsUsualPrices[i] < self.senv.productsCosts[i]:
+                logging.error("At least one usual price smaller than product cost")
+        #endregion
 
+        #region Test environment credibility with different prices
+        logging.info("Test environment credibility with different prices")
+        observation = self.senv._step(self.senv.productsCosts)
+        logging.info(f"Product costs: {observation}")
+        costReward = observation.reward
+        if observation.reward != 0:
+            logging.error("Error: If we sell at product cost, there should be no margin")
+
+        observation = self.senv._step(self.senv.productsCosts * 2)
+        logging.info(f"Product costs *2: {observation}")
+        if observation.reward <= 0 and np.sum(observation.observation) > 0:
+            logging.error("Error: If we sell at more than product cost, there should be a margin")
+
+        observation = self.senv._step(self.senv.productsCosts * 10)
+        logging.info(f"Product costs *10: {observation}")
+        if observation.reward <= 0 and np.sum(observation.observation) > 0:
+            logging.error("Error: If we sell at more than product cost, there should be a margin")
+
+        observation = self.senv._step(self.senv.productsUsualPrices)
+        logging.info(f"Usual buying price: {observation}")
+        usualReward = observation.reward
+
+        observation = self.senv._step(self.senv.productsUsualPrices * 2)
+        logging.info(f"Usual buying price *2: {observation}")
+        logging.info(f"Compared to usual: {observation.reward / usualReward}")
+
+        observation = self.senv._step(self.senv.productsUsualPrices * 4)
+        logging.info(f"Usual buying price *4: {observation}")
+        logging.info(f"Compared to usual: {observation.reward / usualReward}")
+
+        observation = self.senv._step(self.senv.productsUsualPrices * 10)
+        logging.info(f"Usual buying price *10: {observation}")
+        logging.info(f"Compared to usual: {observation.reward / usualReward}")
+
+        observation = self.senv._step(np.zeros(size))
+        logging.info(f"0: {observation}")
+        if observation.reward >= 0.:
+            logging.error("Error: If prices are 0, we should sell and have a deficit")
+
+        observation = self.senv._step(np.zeros(size) + 1)
+        logging.info(f"1: {observation}")
+        if observation.reward >= 0:
+            logging.error("Error: If prices are 1 and average cost 10, we should sell and have a deficit")
+
+        observation = self.senv._step(np.zeros(size) + 1000)
+        logging.info(f"1000: {observation}")
+        if observation.reward > usualReward:
+            logging.error("Error: An unusual price such as 1000 shouldn't cause a best result than the usual price. Error ratio: ", observation.reward / usualReward)
+        #endregion
+    """
+    def testSimplifiedValidate(self):
+        utils.validate_py_environment(self.vsenv, episodes=5)
+    
     """
     def testSimplifiedMyValidate(self):
         self.senv._reset()
@@ -392,7 +471,7 @@ class test(unittest.TestCase):
         return tf_agent
 
     #endregion
-
+    """
     def testAll(self):
         #region Hyperparameters from the example of the documentation
         # use "num_iterations = 1e6" for better results,
@@ -431,6 +510,7 @@ class test(unittest.TestCase):
         logging.info(f'Starting to test {algo} with training {training}')
         logging.info('----------------------------------')
         try:
+            #region Agent selection
             if algo == 'SAC':
                 tf_agent = self.SAC()
             elif algo == 'DQN':
@@ -447,8 +527,9 @@ class test(unittest.TestCase):
                 tf_agent = self.BehavioralCloning()
             else:
                 raise(f"No algorithm matches {algo}")
+            #endregion
 
-            eval_policy = greedy_policy.GreedyPolicy(tf_agent.policy)
+            
             collect_policy = tf_agent.collect_policy
             random_policy  = random_tf_policy.RandomTFPolicy(
                 self.train_env.time_step_spec(),
@@ -457,6 +538,7 @@ class test(unittest.TestCase):
                 data_spec=tf_agent.collect_data_spec,
                 batch_size=self.train_env.batch_size,
                 max_length=self.replay_buffer_capacity)
+            
             #region Agent training
             logging.info(f'Starting agent training over {self.num_iterations} steps')
             if training==1:
@@ -465,23 +547,44 @@ class test(unittest.TestCase):
             elif training == 2:
                 # Error: One of the Tensors in `experience` has a time axis dim value '33', but we require dim value '2'
                 self.trainAvecJusteReplayBuffer(tf_agent=tf_agent, collect_policy=collect_policy, replay_buffer=replay_buffer, initial_collect_steps=self.initial_collect_steps, num_iterations=self.num_iterations, num_eval_episodes=self.num_eval_episodes, eval_interval=self.eval_interval, log_interval=self.log_interval)
-            elif training ==3:
+            elif training == 3:
                 #Has interesting results. First improves a lot, then regresses
                 self.train3(tf_agent=tf_agent, collect_policy=collect_policy, replay_buffer=replay_buffer, initial_collect_steps=self.initial_collect_steps, num_iterations=self.num_iterations, num_eval_episodes=self.num_eval_episodes, eval_interval=self.eval_interval, log_interval=self.log_interval)
+            elif training == 4:
+                #Has interesting results. First improves a lot, then regresses
+                self.AlwaysGreedy(tf_agent=tf_agent, collect_policy=collect_policy, replay_buffer=replay_buffer, initial_collect_steps=self.initial_collect_steps, num_iterations=self.num_iterations, num_eval_episodes=self.num_eval_episodes, eval_interval=self.eval_interval, log_interval=self.log_interval)
             else:
                 logging.error(f"No training match {training}")
             logging.info('Agent training finished')
             #endregion
 
             #region Agent training results
+            eval_policy = greedy_policy.GreedyPolicy(tf_agent.policy)
             logging.info('Test agent result')
             self.compute_avg_return(self.eval_env, eval_policy, self.num_eval_episodes, display=False)
             #endregion
 
-            logging.info(replay_buffer.as_dataset())
+            dataset = replay_buffer.as_dataset()
+            iterator = iter(dataset)
+
+            logging.info('Writing results in a file')
+            with open('result.dump', 'wb') as file:
+                pickle.dump(iterator, file)
         except Exception as e:
             logging.error(e)
-    
+    """
+    """
+    def testReadDumpedData(self):
+        with open('result.dump', 'rb') as file:
+            replay_buffer = pickle.load(file)
+        myit = iter(replay_buffer.as_dataset())
+        loops = 10
+        for data in myit:
+            logging.info(data)
+            loops -= 1
+            if loops < 1:
+                return
+    """
     #region common methods for all agents
     # https://github.com/tensorflow/agents/blob/master/docs/tutorials/7_SAC_minitaur_tutorial.ipynb
     # DynamicStepDriver doesn't stop. Try with cuda ?
@@ -618,6 +721,49 @@ class test(unittest.TestCase):
                 avg_return = self.compute_avg_return(self.eval_env, greedy_policy.GreedyPolicy(tf_agent.policy), num_eval_episodes)
                 returns.append(avg_return)
 
+    # https://github.com/tensorflow/agents/blob/master/docs/tutorials/1_dqn_tutorial.ipynb
+    def AlwaysGreedy(self, tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval, collect_steps_per_iteration = 10):
+        policy = greedy_policy.GreedyPolicy(tf_agent.policy)
+        
+        # Initialize data collection
+        self.collect_data(self.train_env, policy, replay_buffer, steps=2)
+        dataset = replay_buffer.as_dataset(
+            num_parallel_calls=3, 
+            sample_batch_size=64, 
+            #num_steps=collect_steps_per_iteration).prefetch(3)
+            num_steps=2).prefetch(3)
+
+        iterator = iter(dataset)
+
+        # (Optional) Optimize by wrapping some of the code in a graph using TF function.
+        tf_agent.train = common.function(tf_agent.train)
+
+        # Reset the train step
+        tf_agent.train_step_counter.assign(0)
+
+        returns = []
+
+        for i in range(num_iterations):
+            # Collect a few steps using collect_policy and save to the replay buffer.
+            #for _ in range(collect_steps_per_iteration):
+            for _ in range(2):
+                self.collect_step(self.train_env, policy, replay_buffer, i)
+
+            # Sample a batch of data from the buffer and update the agent's network.
+            experience, unused_info = next(iterator)
+            
+            train_loss = tf_agent.train(experience).loss
+
+            #step = tf_agent.train_step_counter.numpy()
+
+            if i % log_interval == 0:
+                logging.info('step = {0}: loss = {1}'.format(i, train_loss))
+
+            if i % eval_interval == 0:
+                logging.info('step = {0}:'.format(i))
+                avg_return = self.compute_avg_return(self.eval_env, policy, num_eval_episodes)
+                returns.append(avg_return)
+
     
     def normal_projection_net(self, action_spec,init_means_output_factor=0.1):
         return normal_projection_network.NormalProjectionNetwork(
@@ -680,3 +826,5 @@ class test(unittest.TestCase):
     #endregion
 
 
+if __name__ == '__main__':
+    unittest.main()
