@@ -68,7 +68,7 @@ Pour un algorithme d'apprentissage par renforcement, l'objectif n'est pas tant d
 
 - Quelle est l'efficacité l'agent qui ne peut apprendre qu'avec des données ayant déjà été observées et biaisées (apprentissage supervisé)
 
-    - En utilisant le replaybuffer ?
+    - En utilisant le replaybuffer ? Transformer le as_dataset en array numpy ?
 
 - Versus l'efficacité si on pré-entraine l'agent avec des données ayant déjà été observées puis qu'on le laisse se renforcer sans randomisation (apprentissage supervisé et par renforcement)
 
@@ -76,7 +76,7 @@ Pour un algorithme d'apprentissage par renforcement, l'objectif n'est pas tant d
 
     - Si oui, dans quelle mesure l'algo est-il sensible à l'évolution de paramètres qu'il ne peut observer ?
 
-    - Dans tous les cas, __comment la développer__ ?
+    - Randomisation : passer de temps en temps en random policy ou en collect policy pour réduire l'intertie ?
 
 - Versus l'efficacité si on pré-entraine l'agent avec des données ayant déjà été observées puis qu'on le laisse se renforcer avec randomisation (apprentissage supervisé et par renforcement)
 

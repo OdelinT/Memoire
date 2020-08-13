@@ -1,7 +1,6 @@
 #region imports
 from environment.PyEnv import PyEnv
 from environment.SimplifiedPyEnv import SimplifiedPyEnv
-from environment.VerySimplifiedPyEnv import VerySimplifiedPyEnv
 import unittest
 import copy
 from tf_agents.environments import utils
@@ -47,13 +46,10 @@ class test(unittest.TestCase):
         self.senv = SimplifiedPyEnv()
         self.senv2 = copy.deepcopy(self.senv)
         self.senv3 = copy.deepcopy(self.senv)
-        self.vsenv = VerySimplifiedPyEnv()
-        self.vsenv2 = copy.deepcopy(self.senv)
-        self.vsenv3 = copy.deepcopy(self.senv)
 
-        self.tf_env = tf_py_environment.TFPyEnvironment(self.vsenv)
-        self.train_env = tf_py_environment.TFPyEnvironment(self.vsenv2)
-        self.eval_env = tf_py_environment.TFPyEnvironment(self.vsenv3)
+        self.tf_env = tf_py_environment.TFPyEnvironment(self.senv)
+        self.train_env = tf_py_environment.TFPyEnvironment(self.senv2)
+        self.eval_env = tf_py_environment.TFPyEnvironment(self.senv3)
         logging.info(self.train_env)
     """
     def testSimplifiedMyValidate(self):
@@ -127,9 +123,10 @@ class test(unittest.TestCase):
             logging.error("Error: An unusual price such as 1000 shouldn't cause a best result than the usual price. Error ratio: ", observation.reward / usualReward)
         #endregion
     """
+    """
     def testSimplifiedValidate(self):
-        utils.validate_py_environment(self.vsenv, episodes=5)
-    
+        utils.validate_py_environment(self.senv, episodes=5)
+    """
     """
     def testSimplifiedMyValidate(self):
         self.senv._reset()
@@ -471,27 +468,27 @@ class test(unittest.TestCase):
         return tf_agent
 
     #endregion
-    """
+    
     def testAll(self):
         #region Hyperparameters from the example of the documentation
         # use "num_iterations = 1e6" for better results,
         # 1e5 is just so this doesn't take too long. 
         self.num_iterations = 10000
-        self.log_interval = 2500
-        self.eval_interval = 2500
+        self.log_interval = self.num_iterations / 5
+        self.eval_interval = self.num_iterations / 5
         self.num_eval_episodes = 100
 
         self.collect_steps_per_iteration = 10
         self.initial_collect_steps = self.collect_steps_per_iteration
-        self.replay_buffer_capacity = 1000
+        self.replay_buffer_capacity = self.num_iterations
 
         self.batch_size = 256 
 
-        self.learning_rate = 3e-4
+        self.learning_rate = 3e-3
         self.critic_learning_rate = self.learning_rate
         self.actor_learning_rate = self.learning_rate
         self.alpha_learning_rate = self.learning_rate
-        self.target_update_tau = 0.005 
+        self.target_update_tau = 0.05 
         self.target_update_period = 1 
         self.gamma = 0.99 
         self.reward_scale_factor = 1.0 
@@ -501,8 +498,10 @@ class test(unittest.TestCase):
         self.actor_fc_layer_params = self.fc_layer_params
         self.critic_joint_fc_layer_params = self.fc_layer_params
         #endregion
+
         training=3
         algo='SAC'
+
         #for algo in ["SAC", "PPO", "TD3", "DQN", "Reinforce", "DDPG", "BehavioralCloning"]:
         #    for training in [2, 3]:
 
@@ -559,32 +558,32 @@ class test(unittest.TestCase):
             #endregion
 
             #region Agent training results
-            eval_policy = greedy_policy.GreedyPolicy(tf_agent.policy)
+            greedy = greedy_policy.GreedyPolicy(tf_agent.policy)
             logging.info('Test agent result')
-            self.compute_avg_return(self.eval_env, eval_policy, self.num_eval_episodes, display=False)
+            self.compute_avg_return(self.eval_env, greedy, self.num_eval_episodes, display=False)
             #endregion
 
-            dataset = replay_buffer.as_dataset()
-            iterator = iter(dataset)
+            data = replay_buffer.gather_all()
 
             logging.info('Writing results in a file')
             with open('result.dump', 'wb') as file:
-                pickle.dump(iterator, file)
+                pickle.dump(data, file)
         except Exception as e:
             logging.error(e)
-    """
+    
     """
     def testReadDumpedData(self):
         with open('result.dump', 'rb') as file:
-            replay_buffer = pickle.load(file)
-        myit = iter(replay_buffer.as_dataset())
+            data = pickle.load(file)
+        logging.info(data)
         loops = 10
-        for data in myit:
-            logging.info(data)
+        for item in data:
+            logging.info(item)
             loops -= 1
             if loops < 1:
                 return
     """
+    
     #region common methods for all agents
     # https://github.com/tensorflow/agents/blob/master/docs/tutorials/7_SAC_minitaur_tutorial.ipynb
     # DynamicStepDriver doesn't stop. Try with cuda ?
@@ -687,7 +686,7 @@ class test(unittest.TestCase):
         dataset = replay_buffer.as_dataset(
             num_parallel_calls=3, 
             sample_batch_size=64, 
-            #num_steps=collect_steps_per_iteration).prefetch(3)
+            #num_steps=collect_steps_per_iteration).prefetch(3) # must be 2 otherwise sends exception
             num_steps=2).prefetch(3)
 
         iterator = iter(dataset)
@@ -704,17 +703,16 @@ class test(unittest.TestCase):
             # Collect a few steps using collect_policy and save to the replay buffer.
             #for _ in range(collect_steps_per_iteration):
             for _ in range(2):
-                self.collect_step(self.train_env, tf_agent.collect_policy, replay_buffer, i)
-
-            # Sample a batch of data from the buffer and update the agent's network.
-            experience, unused_info = next(iterator)
-            
-            train_loss = tf_agent.train(experience).loss
+                self.collect_step(self.train_env, collect_policy, replay_buffer, i)
+                # Sample a batch of data from the buffer and update the agent's network.
+                experience, unused_info = next(iterator)
+                
+                train_loss = tf_agent.train(experience).loss
 
             #step = tf_agent.train_step_counter.numpy()
 
-            if i % log_interval == 0:
-                logging.info('step = {0}: loss = {1}'.format(i, train_loss))
+            #if i % log_interval == 0:
+                #logging.info('step = {0}: loss = {1}'.format(i, train_loss))
 
             if i % eval_interval == 0:
                 logging.info('step = {0}:'.format(i))
@@ -749,19 +747,19 @@ class test(unittest.TestCase):
             for _ in range(2):
                 self.collect_step(self.train_env, policy, replay_buffer, i)
 
-            # Sample a batch of data from the buffer and update the agent's network.
-            experience, unused_info = next(iterator)
-            
-            train_loss = tf_agent.train(experience).loss
+                # Sample a batch of data from the buffer and update the agent's network.
+                experience, unused_info = next(iterator)
+                
+                train_loss = tf_agent.train(experience).loss
 
             #step = tf_agent.train_step_counter.numpy()
 
-            if i % log_interval == 0:
-                logging.info('step = {0}: loss = {1}'.format(i, train_loss))
+            #if i % log_interval == 0:
+            #    logging.info('step = {0}: loss = {1}'.format(i, train_loss))
 
             if i % eval_interval == 0:
                 logging.info('step = {0}:'.format(i))
-                avg_return = self.compute_avg_return(self.eval_env, policy, num_eval_episodes)
+                avg_return = self.compute_avg_return(self.train_env, policy, num_eval_episodes)
                 returns.append(avg_return)
 
     
