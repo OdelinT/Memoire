@@ -469,6 +469,7 @@ class test(unittest.TestCase):
 
     #endregion
     
+    
     def testAll(self):
         #region Hyperparameters from the example of the documentation
         # use "num_iterations = 1e6" for better results,
@@ -573,15 +574,38 @@ class test(unittest.TestCase):
     
     """
     def testReadDumpedData(self):
+        logging.info("Opening file")
         with open('result.dump', 'rb') as file:
             data = pickle.load(file)
+        logging.info("Everything")
         logging.info(data)
+        logging.info("observation")
+        logging.info(data.observation)
+        logging.info("action")
+        logging.info(data.action)
+        logging.info("reward")
+        logging.info(data.reward)
+
+        logging.info("=======================")
         loops = 10
-        for item in data:
-            logging.info(item)
-            loops -= 1
-            if loops < 1:
-                return
+        logging.info(f"Printing {loops} first items out of {len(data.observation.numpy()[0])}")
+        for i in range(loops):
+            logging.info(f"========== {i} ==========")
+            logging.info("observation")
+            logging.info(data.observation.numpy()[0][i])
+            logging.info("action")
+            logging.info(data.action.numpy()[0][i])
+            logging.info("reward")
+            logging.info(data.reward.numpy()[0][i])
+        logging.info(f"Printing {loops} last items")
+        for i in range(loops):
+            logging.info(f"========== {i} ==========")
+            logging.info("observation")
+            logging.info(data.observation.numpy()[0][9000 + i])
+            logging.info("action")
+            logging.info(data.action.numpy()[0][9000 + i])
+            logging.info("reward")
+            logging.info(data.reward.numpy()[0][9000 + i])
     """
     
     #region common methods for all agents
