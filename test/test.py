@@ -469,7 +469,7 @@ class test(unittest.TestCase):
 
     #endregion
     
-    
+    """
     def testAll(self):
         #region Hyperparameters from the example of the documentation
         # use "num_iterations = 1e6" for better results,
@@ -606,7 +606,7 @@ class test(unittest.TestCase):
             logging.info(data.action.numpy()[0][9000 + i])
             logging.info("reward")
             logging.info(data.reward.numpy()[0][9000 + i])
-    """
+    
     
     #region common methods for all agents
     # https://github.com/tensorflow/agents/blob/master/docs/tutorials/7_SAC_minitaur_tutorial.ipynb

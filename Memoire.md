@@ -12,11 +12,11 @@ L'apprentissage automatique peut lui aussi subir ce biais, ne serait-ce que parc
 
 Quelle réponse peut-on apporter à ce biais ?
 
-Avec une randomisation : couper aléatoirement un échantillon en deux, agir sur seulement l'une des moitiés, comparer les résultats.
+Dans le monde réel, avec une randomisation : couper aléatoirement un échantillon en deux, agir sur seulement l'une des moitiés, et comparer les résultats entre les deux groupes.
 
-Comment peut-on répondre à ce biais automatiquement ?
+Est-ce applicable à l'apprentissage automatique ?
 
-On peut imaginer un algorithme qui va apprendre non pas à partir de données en entrée, mais face à une situation, en lui permettant d'agir dessus.
+Il faut pour cela que l'algorithme puisse agir sur son environnement pour apprnedre non seulement à partir de données initiales, mais aussi à partir du résultat de ses actions. 
 
 On peut donc imaginer ajouter d'une randomisation au sein d'un algorithme d'apprentissage par renforcement pour améliorer ses résultats, ou du moins pour voir si ses résultats évoluent.
 
@@ -28,9 +28,11 @@ Corrélation : lien mesurable statistiquement entre deux variables
 
 Causalité : Lien de cause à effet entre deux phénomènes
 
-__Définitions issues principalement du Journal officiel n° 0285 du 09/12/2018 https://www.legifrance.gouv.fr/jo_pdf.do?id=JORFTEXT000037783813 :__
+__Définitions issues principalement du Journal officiel n° 0285 du 09/12/2018 :__
 
-Apprentissage automatique : "Processus par lequel un  algorithme évalue et  améliore ses performances sans l’intervention d’un programmeur, en répétant son exécution sur des jeux de données jusqu’à obtenir, de manière régulière, des résultats pertinents".
+> https://www.legifrance.gouv.fr/jo_pdf.do?id=JORFTEXT000037783813
+
+Apprentissage automatique : "Processus par lequel un algorithme évalue et améliore ses performances sans l’intervention d’un programmeur, en répétant son exécution sur des jeux de données jusqu’à obtenir, de manière régulière, des résultats pertinents".
 
 Le journal officiel le traduit par "machine learning" en anglais. Cela n'est pas certain quand on compare les fréquences de ces expressions au cours du temps avec Ngrams viewer.
 
@@ -43,7 +45,7 @@ Apprentissage automatique dans le corpus francophone :
 Machine learning dans le corpus anglophone :
 ![Fréquences de "machine learning" en anglais](images/frequences_ml_en.PNG)
 
-Apprentissage par renforcement : "Apprentissage automatique dans lequel un programme extérieur évalue positivement ou négative-ment les  résultats successifs de  l’algorithme, l’accumulation des résultats permettant à  l’algorithme d’améliorer ses performances jusqu’à ce qu’il atteigne un objectif préalablement fixé."
+Apprentissage par renforcement : "Apprentissage automatique dans lequel un programme extérieur évalue positivement ou négative-ment les résultats successifs de l’algorithme, l’accumulation des résultats permettant à l’algorithme d’améliorer ses performances jusqu’à ce qu’il atteigne un objectif préalablement fixé."
 
 Agent : algorithme d'apprentissage par renforcement.
 
@@ -57,7 +59,7 @@ Pour un algorithme d'apprentissage par renforcement, l'objectif n'est pas tant d
 
 - Peut-on utiliser l'apprentissage par renforcement pour différencier des corrélations de causalités ? Pour prouver l'existence de causalités ?
 
-    - Très général... Comment le traduire en une expérience ?
+ - Très général... Comment le traduire en une expérience ?
 
 - Dans quelle mesure ce biais influence-t-il le résultat de prédictions basées sur l'apprentissage automatique ?
 
@@ -68,15 +70,15 @@ Pour un algorithme d'apprentissage par renforcement, l'objectif n'est pas tant d
 
 - Quelle est l'efficacité l'agent qui ne peut apprendre qu'avec des données ayant déjà été observées et biaisées (apprentissage supervisé)
 
-    - En utilisant le replaybuffer ? Transformer le as_dataset en array numpy ?
+ - En utilisant le replaybuffer ? Transformer le as_dataset en array numpy ?
 
 - Versus l'efficacité si on pré-entraine l'agent avec des données ayant déjà été observées puis qu'on le laisse se renforcer sans randomisation (apprentissage supervisé et par renforcement)
 
-    - Randomisation, n'est-elle pas en quelque sorte déjà faite par l'algo lors de l'exploration ?
+ - Randomisation, n'est-elle pas en quelque sorte déjà faite par l'algo lors de l'exploration ?
 
-    - Si oui, dans quelle mesure l'algo est-il sensible à l'évolution de paramètres qu'il ne peut observer ?
+ - Si oui, dans quelle mesure l'algo est-il sensible à l'évolution de paramètres qu'il ne peut observer ?
 
-    - Randomisation : passer de temps en temps en random policy ou en collect policy pour réduire l'intertie ?
+ - Randomisation : passer de temps en temps en random policy ou en collect policy pour réduire l'intertie ?
 
 - Versus l'efficacité si on pré-entraine l'agent avec des données ayant déjà été observées puis qu'on le laisse se renforcer avec randomisation (apprentissage supervisé et par renforcement)
 
@@ -92,7 +94,7 @@ La question de confusion entre corrélation et causalité dans le cas de l'appre
 
 Cependant, peut-on utiliser des algos d'apprentissage par renforcement pour trouver/prouver des relations de causalité entre des variables ?
 
-Pour les variables de ses actions, on peut se dire que oui : il suffit de le laisser agir pour qu'il  fasse ou non varier les autres observations et la récompense.
+Pour les variables de ses actions, on peut se dire que oui : il suffit de le laisser agir pour qu'il fasse ou non varier les autres observations et la récompense.
 
 Cependant, si la récompense augmente, et que les observations évoluent de façon linéaire au fil du temps cela ne prouve pas forcément que les actions font s'améliorer la récompense. Il est possible que la seule relation de causalité soit non pas entre les actions d'un côté, la récompense et les observations de l'autre, mais entre le temps et ces dernières.
 
@@ -206,7 +208,7 @@ Pour lui éviter d'essayer des cas triviaux et a priori contreproductifs, on ser
 
 - Vendre ou acheter à perte peut parfois être une obligation légale 
 
-  - Exemple : EDF qui achète à un prix plancher l'électricité issue d'énergies renouvelables sur le marché à terme de l'électricité
+ - Exemple : EDF qui achète à un prix plancher l'électricité issue d'énergies renouvelables sur le marché à terme de l'électricité
 
 ### b) Coïncidence
 
@@ -302,8 +304,6 @@ L'environnement répondrait, pour chaque offre, une demande (un nombre d'achats)
 
 Cas réels qui correspondraient : prix dans un centre commercial connecté, sur un site d'e-commerce, sur un marché à terme en temps réel (financier, de l'électricité, du blé), etc.
 
-### a) L'implémentation
-
 Dans TF, on peut créer deux types d'environnement : py_environment.PyEnvironment ou tf_environment.TFEnvironment. Les deux prennent en compte des paramètres similaires. Dans notre exemples :
 
 - Le temps est linéaire et discret
@@ -314,13 +314,11 @@ Dans TF, on peut créer deux types d'environnement : py_environment.PyEnvironmen
 
 - Récompense: la somme, pour chaque lieu et/ou produit, du prix de vente auquel on soustrait le prix d'achat.
 
-### b) Explication
-
-
-
 ## C- Les biais à implémenter
 
-### Trop paramétrer l'environnement
+L'environnement sera modifié entre chaque test. Pour reproduire les expériences, lancer le test unitaire avec le commit exact précisé.
+
+### a) Trop paramétrer l'environnement
 
 Comme mentionné plus tôt, on peut être tenté de contraindre notre agent dans ses actions lui éviter d'essayer des action qui nous paraissent contreproductives.
 
@@ -332,10 +330,10 @@ Ici, l'action correspond au prix auquel on vend un produit, exprimé en un coefi
 
 ~~~ Python
 self._action_spec = array_spec.BoundedArraySpec(
-    shape=(1,), dtype=np.float32, minimum=1, maximum=100, name='action')
+ shape=(1,), dtype=np.float32, minimum=1, maximum=100, name='action')
 ~~~
 
-### Données non représentatives
+### b) Variable importante invisible
 
 Un paramètre inconnu (la taille des magasins) est créé, et influence les résultats. Ensuite, on modifie ce paramètre, ou on ajoute des situations en moyenne différente (plus grands ou plus petits), et on observe l'inertie de l'agent en comparant ses résultats à ceux qu'il aurait obtenu sur l'environnement directement à l'étape finale.
 
@@ -347,7 +345,18 @@ Exemples :
 
 - la chaîne s'étend sur un territoire avec des habitudes de consommation différentes
 
-### Inciter au biais de confirmation
+__OU BIEN__
+
+Si on n'a que observation = qte, action = prix en % coût, reward = m/cv, on ne peut savoir quelle est l'importance relative de chaque vente de produit dans le résultat.
+
+### c) Inertie face au changement de poids de variables
+
+Est-ce que le modèle se complexifie pour prendre en compte les anciennes données en plus des récentes ?
+
+Quels paramètres pour modifier le taux d'apprentissage et le poids des variables au fil du temps permettent de limiter ce problème ?
+
+
+### d) Inciter au biais de confirmation
 
 En utilisant le biais du razoir d'Ockham (privilégier les modèles les plus simples peut conduire à oublier une variable) mentionné dans cette publication :
 
@@ -355,19 +364,17 @@ En utilisant le biais du razoir d'Ockham (privilégier les modèles les plus sim
 
 - créer un biais du razoir : 
 
-  - Créer deux variables corrélées, l'une expliquant beaucoup les observations, l'autre moins, pour que l'agent se concentre sur la première
-  
-  - Inverser l'importance de ces variables au fil du temps
+ - Créer deux variables corrélées, l'une expliquant beaucoup les observations, l'autre moins, pour que l'agent se concentre sur la première
+ 
+ - Inverser l'importance de ces variables au fil du temps
 
 - Comparer les résultats avec des tests directement sur la seconde variable
 
 
 
-# III-  Analyse des résultats
+# III- Analyse des résultats - __PLAN A__
 
-__PLAN A__
-
-## Biais d'un environnement trop paramétré
+## A- Trop paramétrer l'environnement
 
 __CHIFFRES et commit exact de l'expérience ?__
 
@@ -403,9 +410,13 @@ Soit un manque à gagner de 3,3% * 70% * 120% ~= 2,8% de ses coûts, soit (2,8 /
 
 > https://bfmbusiness.bfmtv.com/entreprise/carrefour-a-renoue-avec-les-benefices-en-2019-apres-deux-annees-dans-le-rouge-1865256.html#:~:text=Quant%20%C3%A0%20la%20marge%20op%C3%A9rationnelle,r%C3%A9sultat%20net%20part%20du%20groupe).
 
+## B- Variable importante invisible
 
+## C- Inertie face au changement de poids de variables
 
-__PLAN B__
+## D- Inciter au biais de confirmation
+
+# III- Analyse des résultats - __PLAN B__
 
 ## A- Si la réponse est explicite
 
@@ -479,10 +490,10 @@ Cependant, je ne parle que de corrélation vs causalité. Ce problème est hors 
 [6]: https://arxiv.org/abs/1801.01290
 
 - https://scholar.google.com/scholar?hl=fr&as_sdt=0%2C5&q=reinforcement+learning+causality
-  - En 2009 : https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2713351/
-  - 2019 : https://arxiv.org/abs/1901.08162
-  - 2018 : https://ieeexplore.ieee.org/abstract/document/8115277
-  - ? : https://books.google.fr/books?hl=fr&lr=&id=2qt0DgAAQBAJ&oi=fnd&pg=PA295&dq=reinforcement+learning+causality&ots=aypw5lcR00&sig=Buj0QQOXRdF6_rFoCpeov9HdVYM&redir_esc=y#v=onepage&q=reinforcement%20learning%20causality&f=false
+ - En 2009 : https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2713351/
+ - 2019 : https://arxiv.org/abs/1901.08162
+ - 2018 : https://ieeexplore.ieee.org/abstract/document/8115277
+ - ? : https://books.google.fr/books?hl=fr&lr=&id=2qt0DgAAQBAJ&oi=fnd&pg=PA295&dq=reinforcement+learning+causality&ots=aypw5lcR00&sig=Buj0QQOXRdF6_rFoCpeov9HdVYM&redir_esc=y#v=onepage&q=reinforcement%20learning%20causality&f=false
 
 
 # VRAC
