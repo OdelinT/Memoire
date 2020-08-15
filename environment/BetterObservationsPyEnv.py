@@ -1,6 +1,4 @@
-import numpy as np
 from tf_agents.trajectories import time_step as ts
-# import abc
 import tensorflow as tf
 
 from tf_agents.environments import py_environment
@@ -9,11 +7,9 @@ from tf_agents.environments import tf_py_environment
 from tf_agents.environments import utils
 from tf_agents.specs import array_spec
 from tf_agents.environments import wrappers
-#from tf_agents.environments import suite_gym
-#from .place import place
-#from .product import product
-import asyncio
+
 import random
+import numpy as np
 
 tf.compat.v1.enable_v2_behavior()
 
@@ -43,15 +39,15 @@ class BetterObservationsPyEnv(py_environment.PyEnvironment):
         self.productsPriceFlexibility = np.random.random(size = self.size) * 10 + 5
 
         # Specs
-        self.initial_observation = np.zeros((self.size,), dtype=np.float32)
-
+        self.initial_observation = np.zeros((6,10), dtype=np.float32)
+        
         # Action is an array of all the product prices, explained in product cost multiplication
         # This environment doesn't allow to sell at lost to train faster
         self._action_spec = array_spec.BoundedArraySpec(
             shape=(self.size,), dtype=np.float32, minimum=1, maximum=100, name='action')
-        
+
         self._observation_spec = array_spec.ArraySpec(
-            shape = (self.size,),dtype=np.float32,name = 'observation')
+            shape = (6, self.size),dtype=np.float32,name = 'observation')
         
         self._state = 0
         self._episode_ended = False
@@ -69,16 +65,32 @@ class BetterObservationsPyEnv(py_environment.PyEnvironment):
         return ts.restart(self.initial_observation)
     
     def _step(self, action):
-        prices = self.productsCosts * action
-        observation = np.round((self.placeSize  * self.productsUsualBuyingRates) * (self.productsPriceFlexibility ** ((self.productsUsualPrices - prices) / self.productsUsualPrices)))
+        try:
+            if action.shape != self.productsCosts.shape:
+                #action shape doesn't match action_spec. It matches observation_spec. Bug or usual for SAC agent?
+                #print(action.shape)
+                action = np.sum(action, axis=0)
+            prices = self.productsCosts * action
+            quantities = np.round((self.placeSize  * self.productsUsualBuyingRates) * (self.productsPriceFlexibility ** ((self.productsUsualPrices - prices) / self.productsUsualPrices)))
 
-        marginPerProduct = (prices - self.productsCosts) * observation
+            marginPerProduct = (prices - self.productsCosts) * quantities
 
-        reward = marginPerProduct.sum()
-        # convert to numpy array of float32, otherwise not accepted by specs
-        observation = np.array(observation, dtype=np.float32)
-        if self._state < self.duration:
-            self._state += 1
-            return ts.transition(observation, reward)
-        else:
-            return ts.termination(observation, reward)
+            reward = marginPerProduct.sum()
+
+            observation = np.stack((
+                self.productsCosts,
+                self.productsUsualMarginRates,
+                self.productsUsualBuyingRates,
+                self.productsUsualPrices,
+                self.productsPriceFlexibility,
+                quantities))
+            # convert to numpy array of float32, otherwise not accepted by specs
+            observation = np.array(observation, dtype=np.float32)
+
+            if self._state < self.duration:
+                self._state += 1
+                return ts.transition(observation, reward)
+            else:
+                return ts.termination(observation, reward)
+        except:
+            1/0

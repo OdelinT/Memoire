@@ -202,8 +202,19 @@ class test(unittest.TestCase):
         #endregion
     
     
-    def testBaseEnvValidate(self):
-        utils.validate_py_environment(self.base_env, episodes=5)
+    def testEnvValidate(self):
+        for environment in [
+            self.base_env,
+            self.base_env2,
+            self.base_env3,
+            self.AllowDeficit_env,
+            self.AllowDeficit_env2,
+            self.AllowDeficit_env3,
+            self.BetterObservations_env,
+            self.BetterObservations_env2,
+            self.BetterObservations_env3
+        ]:
+            utils.validate_py_environment(environment, episodes=5)
     
     def testEnvironmentSeedForParametersGeneration(self):
         duration = self.base_env.duration
@@ -220,7 +231,10 @@ class test(unittest.TestCase):
             self.base_env3,
             self.AllowDeficit_env,
             self.AllowDeficit_env2,
-            self.AllowDeficit_env3
+            self.AllowDeficit_env3,
+            self.BetterObservations_env,
+            self.BetterObservations_env2,
+            self.BetterObservations_env3
         ]:
             #i += 1
             #logging.info(i)
@@ -527,9 +541,9 @@ class test(unittest.TestCase):
         #region Hyperparameters from the example of the documentation
         # use "num_iterations = 1e6" for better results,
         # 1e5 is just so this doesn't take too long. 
-        self.num_iterations = 1000
-        self.log_interval = self.num_iterations +1
-        self.eval_interval = self.num_iterations / +1 
+        self.num_iterations = 10000
+        self.log_interval = self.num_iterations / 5
+        self.eval_interval = self.num_iterations / 5
         self.num_eval_episodes = 100
 
         self.collect_steps_per_iteration = 10
@@ -593,6 +607,213 @@ class test(unittest.TestCase):
             except Exception as e:
                 logging.error(e)
     
+    def testCompareOverParametrizedTenTimesOnSmallerIterations(self):
+        for _ in range(10):
+            #region Hyperparameters from the example of the documentation
+            # use "num_iterations = 1e6" for better results,
+            # 1e5 is just so this doesn't take too long. 
+            self.num_iterations = 1000
+            self.log_interval = self.num_iterations +1
+            self.eval_interval = self.num_iterations +1 
+            self.num_eval_episodes = 100
+
+            self.collect_steps_per_iteration = 10
+            self.initial_collect_steps = self.collect_steps_per_iteration
+            self.replay_buffer_capacity = self.num_iterations
+
+            self.batch_size = 256 
+
+            self.learning_rate = 3e-3
+            self.critic_learning_rate = self.learning_rate
+            self.actor_learning_rate = self.learning_rate
+            self.alpha_learning_rate = self.learning_rate
+            self.target_update_tau = 0.05 
+            self.target_update_period = 1 
+            self.gamma = 0.99 
+            self.reward_scale_factor = 1.0 
+            self.gradient_clipping = None # @param
+
+            self.fc_layer_params = (256, 256)
+            self.actor_fc_layer_params = self.fc_layer_params
+            self.critic_joint_fc_layer_params = self.fc_layer_params
+            #endregion
+
+            for env in [
+                {
+                    "train" : self.AllowDeficit_train_env, 
+                    "eval" : self.AllowDeficit_eval_env, 
+                    "name": "Environment that allows to sell at lost"
+                },{
+                    "train" : self.base_train_env, 
+                    "eval" : self.base_eval_env, 
+                    "name": "Environment that don't allow to sell at lost"
+                } 
+            ]:
+                logging.info('----------------------------------')
+                logging.info(f'Starting to test {env["name"]}')
+                logging.info('----------------------------------')
+                try:
+                    tf_agent = self.SAC()
+                    
+                    collect_policy = tf_agent.collect_policy
+                    random_policy  = random_tf_policy.RandomTFPolicy(
+                        env["train"].time_step_spec(),
+                        env["train"].action_spec())
+                    replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
+                        data_spec=tf_agent.collect_data_spec,
+                        batch_size=env["train"].batch_size,
+                        max_length=self.replay_buffer_capacity)
+                    
+                    #region Agent training
+                    logging.info(f'Starting agent training over {self.num_iterations} steps')
+                    self.train3(tf_agent=tf_agent, collect_policy=collect_policy, replay_buffer=replay_buffer, initial_collect_steps=self.initial_collect_steps, num_iterations=self.num_iterations, num_eval_episodes=self.num_eval_episodes, eval_interval=self.eval_interval, log_interval=self.log_interval, train_env=env["train"], eval_env=env["eval"])
+                    logging.info('Agent training finished')
+                    #endregion
+
+                    #region Agent training results
+                    greedy = greedy_policy.GreedyPolicy(tf_agent.policy)
+                    logging.info('Test agent result')
+                    self.compute_avg_return(self.base_eval_env, greedy, self.num_eval_episodes, display=False)
+                    #endregion
+                except Exception as e:
+                    logging.error(e)
+        
+    
+    def testCompareBetterObservations(self):
+        #region Hyperparameters from the example of the documentation
+        # use "num_iterations = 1e6" for better results,
+        # 1e5 is just so this doesn't take too long. 
+        self.num_iterations = 10000
+        self.log_interval = self.num_iterations / 5
+        self.eval_interval = self.num_iterations / 5
+        self.num_eval_episodes = 100
+
+        self.collect_steps_per_iteration = 10
+        self.initial_collect_steps = self.collect_steps_per_iteration
+        self.replay_buffer_capacity = self.num_iterations
+
+        self.batch_size = 256 
+
+        self.learning_rate = 3e-3
+        self.critic_learning_rate = self.learning_rate
+        self.actor_learning_rate = self.learning_rate
+        self.alpha_learning_rate = self.learning_rate
+        self.target_update_tau = 0.05 
+        self.target_update_period = 1 
+        self.gamma = 0.99 
+        self.reward_scale_factor = 1.0 
+        self.gradient_clipping = None # @param
+
+        self.fc_layer_params = (256, 256)
+        self.actor_fc_layer_params = self.fc_layer_params
+        self.critic_joint_fc_layer_params = self.fc_layer_params
+        #endregion
+
+        for env in [
+            {
+                "train" : self.BetterObservations_train_env, 
+                "eval" : self.BetterObservations_eval_env, 
+                "name": "Environment with much more observations"
+            },{
+                "train" : self.base_train_env, 
+                "eval" : self.base_eval_env, 
+                "name": "Base environment"
+            }
+        ]:
+            logging.info('----------------------------------')
+            logging.info(f'Starting to test {env["name"]}')
+            logging.info('----------------------------------')
+            tf_agent = self.SAC()
+            
+            collect_policy = tf_agent.collect_policy
+            random_policy  = random_tf_policy.RandomTFPolicy(
+                env["train"].time_step_spec(),
+                env["train"].action_spec())
+            replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
+                data_spec=tf_agent.collect_data_spec,
+                batch_size=env["train"].batch_size,
+                max_length=self.replay_buffer_capacity)
+            
+            #region Agent training
+            logging.info(f'Starting agent training over {self.num_iterations} steps')
+            self.train3(tf_agent=tf_agent, collect_policy=collect_policy, replay_buffer=replay_buffer, initial_collect_steps=self.initial_collect_steps, num_iterations=self.num_iterations, num_eval_episodes=self.num_eval_episodes, eval_interval=self.eval_interval, log_interval=self.log_interval, train_env=env["train"], eval_env=env["eval"])
+            logging.info('Agent training finished')
+            #endregion
+
+            #region Agent training results
+            greedy = greedy_policy.GreedyPolicy(tf_agent.policy)
+            logging.info('Test agent result')
+            self.compute_avg_return(self.base_eval_env, greedy, self.num_eval_episodes, display=False)
+            #endregion
+    
+    def testCompareBetterObservationsTenTimesOnSmallerIterations(self):
+        for _ in range(10):
+            #region Hyperparameters from the example of the documentation
+            # use "num_iterations = 1e6" for better results,
+            # 1e5 is just so this doesn't take too long. 
+            self.num_iterations = 1000
+            self.log_interval = self.num_iterations +1
+            self.eval_interval = self.num_iterations +1 
+            self.num_eval_episodes = 100
+
+            self.collect_steps_per_iteration = 10
+            self.initial_collect_steps = self.collect_steps_per_iteration
+            self.replay_buffer_capacity = self.num_iterations
+
+            self.batch_size = 256 
+
+            self.learning_rate = 3e-3
+            self.critic_learning_rate = self.learning_rate
+            self.actor_learning_rate = self.learning_rate
+            self.alpha_learning_rate = self.learning_rate
+            self.target_update_tau = 0.05 
+            self.target_update_period = 1 
+            self.gamma = 0.99 
+            self.reward_scale_factor = 1.0 
+            self.gradient_clipping = None # @param
+
+            self.fc_layer_params = (256, 256)
+            self.actor_fc_layer_params = self.fc_layer_params
+            self.critic_joint_fc_layer_params = self.fc_layer_params
+            #endregion
+
+            for env in [
+                {
+                    "train" : self.BetterObservations_train_env, 
+                    "eval" : self.BetterObservations_eval_env, 
+                    "name": "Environment with much more observations"
+                },{
+                    "train" : self.base_train_env, 
+                    "eval" : self.base_eval_env, 
+                    "name": "Base environment"
+                }
+            ]:
+                logging.info('----------------------------------')
+                logging.info(f'Starting to test {env["name"]}')
+                logging.info('----------------------------------')
+                tf_agent = self.SAC()
+                
+                collect_policy = tf_agent.collect_policy
+                random_policy  = random_tf_policy.RandomTFPolicy(
+                    env["train"].time_step_spec(),
+                    env["train"].action_spec())
+                replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
+                    data_spec=tf_agent.collect_data_spec,
+                    batch_size=env["train"].batch_size,
+                    max_length=self.replay_buffer_capacity)
+                
+                #region Agent training
+                logging.info(f'Starting agent training over {self.num_iterations} steps')
+                self.train3(tf_agent=tf_agent, collect_policy=collect_policy, replay_buffer=replay_buffer, initial_collect_steps=self.initial_collect_steps, num_iterations=self.num_iterations, num_eval_episodes=self.num_eval_episodes, eval_interval=self.eval_interval, log_interval=self.log_interval, train_env=env["train"], eval_env=env["eval"])
+                logging.info('Agent training finished')
+                #endregion
+
+                #region Agent training results
+                greedy = greedy_policy.GreedyPolicy(tf_agent.policy)
+                logging.info('Test agent result')
+                self.compute_avg_return(self.base_eval_env, greedy, self.num_eval_episodes, display=False)
+                #endregion
+       
     
     def testReadDumpedData(self):
         logging.info("Opening file")
@@ -628,7 +849,8 @@ class test(unittest.TestCase):
             logging.info("reward")
             logging.info(data.reward.numpy()[0][9000 + i])
     
-    
+    def testRaiseExcept(selfl):
+        raise("Exemple d'exception levée")
     #region common methods for all agents
     # https://github.com/tensorflow/agents/blob/master/docs/tutorials/7_SAC_minitaur_tutorial.ipynb
     # DynamicStepDriver doesn't stop. Try with cuda ?
@@ -765,7 +987,7 @@ class test(unittest.TestCase):
 
             if i % eval_interval == 0:
                 logging.info('step = {0}:'.format(i))
-                avg_return = self.compute_avg_return(eval_env, greedy_policy.GreedyPolicy(tf_agent.policy), num_eval_episodes)
+                avg_return = self.compute_avg_return(eval_env, tf_agent.policy, num_eval_episodes)
                 returns.append(avg_return)
 
     # https://github.com/tensorflow/agents/blob/master/docs/tutorials/1_dqn_tutorial.ipynb

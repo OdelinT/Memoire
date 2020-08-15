@@ -364,11 +364,60 @@ Exemples de variables invisibles :
 
 - Dans l'environnement de base, on a pour seule observation la quantité vendue. Le fait que les actions soient le prix de vente de chaque produit exprimé en un coefficient multiplicateur du coût, et la récompense la marge sur coût variables, rendent extrêmement difficile de déterminer l'importance relative de chaque produit dans le résultat final.
 
-__OU BIEN__
+On testera donc en ajoutant toutes ces paramètres dans les observations fournies par notre environnement à notre agent.
 
+Par la suite, on fera évoluer ces paramètres, et on mesurera l'inertie des agents.
 
+#### Difficulté d'implémentation
 
-On testera donc en ajoutant tous ces paramètres supplémentaires à notre environnement.
+__Un bug dans la librairie tensorflow perturbe cette expérience.__
+
+Lors de la création de l'environnement, on doit spécifier les dimensions des observations (retournées par l'environnement) ainsi que des actions (à effectuer sur l'environnement) de la manière suivante :
+
+~~~ python
+self._action_spec = array_spec.BoundedArraySpec(
+    shape=(10,), dtype=np.float32, minimum=1, maximum=100, name='action')
+
+self._observation_spec = array_spec.ArraySpec(
+    shape = (6, 10),dtype=np.float32,name = 'observation')
+~~~
+
+La spécification signale que les actions doivent être de dimension 10 (un prix pour chaque produit) et que les observations retournées seront de dimension 6*10. 
+
+En effet, pour cette expérience, les observations ne seront plus seulement la quantité vendue de chaque produit, mais également 5 autres tableaux de dimension 10 représentant respectivement :
+
+ - Le coût des produits
+ - Leur taux de marge usuel
+ - Leur taux d'achat habituel
+ - Leur prix
+ - La flexibilité de la demande liée au prix
+
+L'environnement est valide (conforme à ses spécifications, et qu'il fonctionne si on le manipule) selon la méthode prévue à cet effet par la librairie tensorflow :
+
+~~~ python
+utils.validate_py_environment(self.BetterObservations_env, episodes=5)
+~~~
+
+__Mais les actions suggérées par l'algorithme SAC ont sont conformes aux spécifications des observations et non des actions.__ Ce problème n'apparaît que maintenant étant donné que jusqu'à présent ces spécifications étaient les mêmes.
+
+__Solutions possibles :__
+
+- Changer de librairie
+  - Trop long
+- Changer d'algorithme
+  - Très long, SAC était le seul à donner des résultats satisfaisants rapidement
+- Mettre à jour la librairie concernée
+  - Passer de tensorflow 2.2.0 à 2.3.0 (la seule mise à jour possible) apporte trop de changements pour que le reste du code fonctionne, sans garantie que le problème soit résolu.
+  - Le problème risque d'être le même en utilisant la version nightly (build quotidien).
+- Redimensionner les actions reçues
+  - __C'est cette solutions que nous retiendront pour l'instant__ (15/08)
+
+Les 6 lignes des actions suggérées par l'agent seront additionnées pour n'en former qu'une seule. __Pour ces raisons, l'expérience pourra fournir des résultats, mais il sera très difficile de pouvoir extrapoler ces derniers dans la mesure où les actions de l'agent ne seront pas appliquées telles qu'elles sont censées.__
+
+~~~ python
+if action.shape != self.productsCosts.shape:
+    action = np.sum(action, axis=0)
+~~~
 
 ### c) Inertie face au changement de poids de variables
 
@@ -462,65 +511,27 @@ En conclusion, dans une situation où les produits vendus peuvent périmer, et o
 
 ## B- Variable importante invisible
 
+Les difficultés d'implémentations ne se sont finalement pas arrêtées là. 
+
+En effet, l'exécution des expériences s'interrompt purement et simplement sans levée d'exception ni message d'erreur, et stoppe même  le module de test unitaires censé gérer ces comportements.
+
+Ce qui se produit :
+
+![](images\Actual_end_of_test.PNG)
+
+Comment est censé se terminer un test réussi :
+
+![](images\Expected_end_of_test_success.PNG)
+
+Comment est censé se terminer un test échoué :
+
+![](images\Expected_end_of_test_failure.PNG)
+
+__En conclusion, ce cas ne sera pas traité ici__ 15/08
+
 ## C- Inertie face au changement de poids de variables
 
 ## D- Inciter au biais de confirmation
-
-# III- Analyse des résultats - __PLAN B__
-
-## A- Si la réponse est explicite
-
-
-
-## B- Si les résultats nécessitent de comparer les chiffres
-
-Pour quels paramètres et quels biais, quels algorithmes obtiennent quel résultat sur un grand nombre d'opérations ?
-
-## C- Biais de la démarche
-
-### a) Données fictives, donc conditionnées à mon imagination
-
-### b) Cas impossibles à tester ou dont les résultats sont difficiles à analyser
-
-### c) "Effet cigogne" : une notion floue
-
-Derrière cette appellation claire en langage naturel, on peut déduire tout un ensemble de biais dans le cas de l'apprentissage automatique. Ce choix de sujet n'est peut-être pas le plus adapté.
-
-## D- Ouverture
-
-### a) Comparaisons impossibles
-
-Seulement des tests d'un agent face à un environnement
-
-#### On ne peut pas extrapoler les comparaisons entre algorithmes en concurrence.
-
-#### Ni comparer avec des résultats obtenus par régression
-
-### b) Ce qui n'est pas traité
-
-#### 1- Le cas de la régression, du clustering et de la classification
-
-#### 2- La loi de goodhart
-
-"Lorsqu'une mesure devient un objectif, elle cesse d'être une bonne mesure".
-
-Cela semble l'un des principaux biais lors de la mise en oeuvre d'un algorithme d'apprentissage automatique pour répondre à une problématique. Il faut en effet s'assurer qu'il n'y aie pas des manières de maximiser la mesure qui sert d'objectif au détriment de l'objectif réel (effet rebond et effet cobra).
-
-Ce biais et sa réponse sont cependant moins des questions techniques et intrinsèques aux algorithmes que des questions d'appréciation qualitative de la pertinence des indicateurs et objectifs.
-
-#### 3- Temps réel
-
-Il ne s'agit ici que de comparer que les résultats des algos face aux biais, indépendamment de leur temps d'exécution ou de leur consommation de ressources. Les résultats ne sont donc pas applicables dans une situation en temps réel où le temps d'exécution entre en conflit avec un temps de réponse imposé.
-
-#### 4- Biais connexes
-
-Face à des données d'apprentissage trop "propres", le modèle obtenu peut devenir rigide.
-
-Cependant, je ne parle que de corrélation vs causalité. Ce problème est hors périmètre puisque la causalité est réelle.
-
-#### 5- Algorithmes
-
-(10/08) les tests ne sont faits qu'avec l'algorithme SAC (Soft-Actor Critic) car il s'agit de celui qui a donné rapidement les meilleurs résultats. Tous les résultats ne sont pas généralisables à tous les autres agents, particulièrement ceux de catégories différentes.
 
 # Conclusion
 
