@@ -39,8 +39,8 @@ class BasePyEnv(py_environment.PyEnvironment):
         self.productsUsualBuyingRates = np.random.exponential(size = self.size) /100
         self.productsUsualPrices = self.productsCosts / (1 - self.productsUsualMarginRates)
 
-        # Price flexibility between 5 and 15
-        self.productsPriceFlexibility = np.random.random(size = self.size) * 10 + 5
+        # Price flexibility between 5 and 10
+        self.productsPriceFlexibility = np.random.random(size = self.size) * 5 + 5
 
         # Specs
         self.initial_observation = np.zeros((self.size,), dtype=np.float32)

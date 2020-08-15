@@ -316,7 +316,11 @@ Dans TF, on peut créer deux types d'environnement : py_environment.PyEnvironmen
 
 ## C- Les biais à implémenter
 
-L'environnement sera modifié entre chaque test. Pour reproduire les expériences, lancer le test unitaire avec le commit exact précisé.
+La classe de l'environnement basique sera dupliquée en plusieurs versions, chacune ayant pour but de tester un biais ou une situation spécifique.
+
+La graine des paramètres aléatoires sera la même dans tous les environnements, et on créera un test unitaire pour vérifier que les paramètres générés dans les différents environnements seront bien identiques. Cela permettra d'écarter la possibilité que certains environnement soient, au moment de l'exécution des tests, plus favorables que les autres.
+
+On pourrait utiliser un système d'héritage, mais les classes sont assez courtes et les paramètres à faire évoluer ne sont présents que dans deux méthodes à redéfinir. Il est donc bien plus simple et lisible de dupliquer les classes sans lien d'héritage entre elles.
 
 ### a) Trop paramétrer l'environnement
 
@@ -425,6 +429,7 @@ Est-ce que le modèle se complexifie pour prendre en compte les anciennes donné
 
 Quels paramètres pour modifier le taux d'apprentissage et le poids des variables au fil du temps permettent de limiter ce problème ?
 
+Les différents paramètres évolueront dans des sens différents (favorables ou défavorables au résultat), afin d'une part de ne pas trop complexifier les comparaisons, et d'autre part pour qu'exploiter les environnements évolués nécessite des "tactiques" différentes de l'environnement initial.
 
 ### d) Inciter au biais de confirmation
 
@@ -442,7 +447,7 @@ En utilisant le biais du razoir d'Ockham (privilégier les modèles les plus sim
 
 
 
-# III- Analyse des résultats - __PLAN A__
+# III- Analyse des résultats
 
 ## A- Trop paramétrer l'environnement
 
@@ -463,24 +468,24 @@ Bien que les résultats peuvent changer aléatoirement lors de l'exécution de l
 
 En mesurant l'efficacité des l'agents lors de 100 tests à la fin de 1 000 étapes d'apprentissage, on obtient le tableau suivant :
 
-|         | Résultats en cas de vente à perte autorisée | Résultats en cas de vente à perte interdite | Comparaison en pourcentage |
-|---------|--------|--------|------|
-|         |  7 400 |  1 380 |  56% |
-|         |  2 519 |  8 485 | 337% |
-|         |  8 901 | 16 389 | 184% |
-|         |  2 175 |  2 676 | 123% |
-|         |  5 767 |  3 754 |  65% |
-|         |  8 797 | 13 232 | 150% |
-|         |  8 815 |  4 335 |  49% |
-|         |  9 207 | 14 685 | 159% |
-|         |  3 811 | 10 903 | 286% |
-|         | 11 554 |  8 848 |  77% |
-|---------|--------|--------|------|
-| Moyenne |  6 895 |  8 469 | 145% |
+|         | Résultats en cas de vente à perte autorisée | Résultats en cas de vente à perte interdite |
+|---------|--------|--------|
+|         |  7 400 |  1 380 |
+|         |  2 519 |  8 485 |
+|         |  8 901 | 16 389 |
+|         |  2 175 |  2 676 |
+|         |  5 767 |  3 754 |
+|         |  8 797 | 13 232 |
+|         |  8 815 |  4 335 |
+|         |  9 207 | 14 685 |
+|         |  3 811 | 10 903 |
+|         | 11 554 |  8 848 |
+|---------|--------|--------|
+| Moyenne |  6 895 |  8 469 |
 
-Sur 1 000 étapes d'apprentissage, en moyenne, chacun des résultats sans vente à perte est 45% plus élevé qu'avec la possibilité de vendre a perte.
+Pour rappel, les environnements ont des paramètres identiques. En effet, la même graine est utilisée pour la génération des nombres aléatoires, et nous disposons d'un test unitaire qui vérifie que ce soit bien le cas. Ainsi, __les données peuvent être interverties en colonne_, faire la en ligne n'a donc pas de sens.
 
-La moyenne des 10 résultats est plus élevée de 23% lorsque l'environnement ne peux pas vendre à perte. (8469/6895 ~= 123%)
+On peut observer que la moyenne des 10 résultats est plus élevée de 23% lorsque l'environnement ne peux pas vendre à perte. (8469/6895 ~= 123%)
 
 
 ### Inconvénients du sur-paramétrage en terme de résultat
@@ -530,6 +535,47 @@ Comment est censé se terminer un test échoué :
 __En conclusion, ce cas ne sera pas traité ici__ 15/08
 
 ## C- Inertie face au changement de poids de variables
+
+### Résultats
+
+Résultat sur 10 tests d'apprentissage sur 1 000 étapes :
+
+| Environnement statique | Environnement qui évolue au fil du temps | Environnement qui suit une évolution comparable à l'initialisation puis qui devient statique |
+| ----------- | ----------- | ----------- |
+|  2 775  |  536  |  0  |
+|  2 501  |  0  |  0  |
+|  7 881  |  0  |  0  |
+|  2 679  |  0  |  0  |
+|  4 323  |  0  |  0  |
+|  4 597  |  0  |  0  |
+|  2 988  |  0  |  0  |
+|  3 144  |  0  |  0  |
+|  4 376  |  0  |  0  |
+|  8 633  |  0  |  0  |
+
+C'est réussi, la colonne du milieu a des données au milieu entre les 3 !
+
+Les paramètres devaient ne pas être viables. Quickfix & on recommence.
+
+| Environnement statique | Environnement qui évolue au fil du temps | Environnement qui suit une évolution comparable à l'initialisation puis qui devient statique |
+| ----------- | ----------- | ----------- |
+|   5 157  |  0  |  1 747  |
+|  11 084  |  0  |  2 776  |
+|   8 247  |  0  |  2 426  |
+|   4 975  |  0  |  1 705  |
+|   8 943  |  0  |  9 835  |
+|   4 987  |  0  |  5 759  |
+|  11 351  |  0  |  2 186  |
+|   3 705  |  0  |  4 634  |
+|   3 325  |  0  |  2 715  |
+|   4 463  |  0  | 14 475  |
+
+### Première analyse
+
+Les résultats semblent clairs : faire évoluer les paramètres, même progressivement, donne de moins bons résultats que de garder des paramètres constants.
+
+### Ralentir l'évolution et remesurer ?
+
 
 ## D- Inciter au biais de confirmation
 
