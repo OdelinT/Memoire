@@ -17,11 +17,11 @@ import random
 
 tf.compat.v1.enable_v2_behavior()
 
-class AllowDeficitCostPyEnv(py_environment.PyEnvironment):
+class BetterObservationsPyEnv(py_environment.PyEnvironment):
     def __init__(self):
         self.duration = 30
         self.size = 10
-
+        
         # IMPORTANT
         # Needed to be able to compare different environment's results
         random.seed(0)
@@ -30,7 +30,6 @@ class AllowDeficitCostPyEnv(py_environment.PyEnvironment):
         # Places and products
         # Average size of places: 2000 visits per day
         self.placeSize = random.random() * 2000
-        
 
         # Average cost per product: 10
         self.productsCosts = np.random.exponential(size = self.size) * 10
@@ -47,8 +46,9 @@ class AllowDeficitCostPyEnv(py_environment.PyEnvironment):
         self.initial_observation = np.zeros((self.size,), dtype=np.float32)
 
         # Action is an array of all the product prices, explained in product cost multiplication
+        # This environment doesn't allow to sell at lost to train faster
         self._action_spec = array_spec.BoundedArraySpec(
-            shape=(self.size,), dtype=np.float32, minimum=0, maximum=100, name='action')
+            shape=(self.size,), dtype=np.float32, minimum=1, maximum=100, name='action')
         
         self._observation_spec = array_spec.ArraySpec(
             shape = (self.size,),dtype=np.float32,name = 'observation')

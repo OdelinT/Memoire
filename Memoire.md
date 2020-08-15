@@ -354,19 +354,21 @@ Le cas de la péremption comprend beaucoup de paramètres, et en établir une si
 
 ### b) Variable importante invisible
 
-Un paramètre inconnu (la taille des magasins) est créé, et influence les résultats. Ensuite, on modifie ce paramètre, ou on ajoute des situations en moyenne différente (plus grands ou plus petits), et on observe l'inertie de l'agent en comparant ses résultats à ceux qu'il aurait obtenu sur l'environnement directement à l'étape finale.
+Un paramètre inconnu est créé, et influence les résultats. Ensuite, on modifie ce paramètre et on observe l'inertie de l'agent en comparant ses résultats à ceux qu'il aurait obtenu sur un environnement qui aurait été dès le départ à l'étape finale.
 
-A une étape de l'algorithme, arbitrairement jouter ou supprimer des magasins ou produits avec des caractéristiques non représentatives de la population de départ.
+Exemples de variables invisibles :
 
-Exemples : 
+- La taille des magasins. L'expérience était sur les carrefour city, elle inclut par la suite également les carrefour market, d'une taille en moyenne différente. Toutes les quantités varient.
 
-- l'expérience était sur les carrefour city, elle inclut par la suite également les carrefour market, d'une taille en moyenne différente. Toutes les quantités varient.
+- La flexibilité de la demande selon le prix. On peut imaginer qu'au fil du temps ce paramètre influe plus ou moins les décisions d'achat.
 
-- la chaîne s'étend sur un territoire avec des habitudes de consommation différentes
+- Dans l'environnement de base, on a pour seule observation la quantité vendue. Le fait que les actions soient le prix de vente de chaque produit exprimé en un coefficient multiplicateur du coût, et la récompense la marge sur coût variables, rendent extrêmement difficile de déterminer l'importance relative de chaque produit dans le résultat final.
 
 __OU BIEN__
 
-Si on n'a que observation = qte, action = prix en % coût, reward = m/cv, on ne peut savoir quelle est l'importance relative de chaque vente de produit dans le résultat.
+
+
+On testera donc en ajoutant tous ces paramètres supplémentaires à notre environnement.
 
 ### c) Inertie face au changement de poids de variables
 

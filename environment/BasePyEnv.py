@@ -39,6 +39,9 @@ class BasePyEnv(py_environment.PyEnvironment):
         self.productsUsualBuyingRates = np.random.exponential(size = self.size) /100
         self.productsUsualPrices = self.productsCosts / (1 - self.productsUsualMarginRates)
 
+        # Price flexibility between 5 and 15
+        self.productsPriceFlexibility = np.random.random(size = self.size) * 10 + 5
+
         # Specs
         self.initial_observation = np.zeros((self.size,), dtype=np.float32)
 
@@ -67,7 +70,7 @@ class BasePyEnv(py_environment.PyEnvironment):
     
     def _step(self, action):
         prices = self.productsCosts * action
-        observation = np.round((self.placeSize  * self.productsUsualBuyingRates) * (10 ** ((self.productsUsualPrices - prices) / self.productsUsualPrices)))
+        observation = np.round((self.placeSize  * self.productsUsualBuyingRates) * (self.productsPriceFlexibility ** ((self.productsUsualPrices - prices) / self.productsUsualPrices)))
 
         marginPerProduct = (prices - self.productsCosts) * observation
 

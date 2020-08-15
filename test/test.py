@@ -1,6 +1,7 @@
 #region imports
 from environment.BasePyEnv import BasePyEnv
 from environment.AllowDeficitCostPyEnv import AllowDeficitCostPyEnv
+from environment.BetterObservationsPyEnv import BetterObservationsPyEnv
 
 import unittest
 import copy
@@ -54,8 +55,14 @@ class test(unittest.TestCase):
         self.AllowDeficit_tf_env = tf_py_environment.TFPyEnvironment(self.AllowDeficit_env)
         self.AllowDeficit_train_env = tf_py_environment.TFPyEnvironment(self.AllowDeficit_env2)
         self.AllowDeficit_eval_env = tf_py_environment.TFPyEnvironment(self.AllowDeficit_env3)
+
+        self.BetterObservations_env = BetterObservationsPyEnv()
+        self.BetterObservations_env2 = BetterObservationsPyEnv()
+        self.BetterObservations_env3 = BetterObservationsPyEnv()
+        self.BetterObservations_tf_env = tf_py_environment.TFPyEnvironment(self.BetterObservations_env)
+        self.BetterObservations_train_env = tf_py_environment.TFPyEnvironment(self.BetterObservations_env2)
+        self.BetterObservations_eval_env = tf_py_environment.TFPyEnvironment(self.BetterObservations_env3)
     
-    # 15/08 : bug
     def testBaseEnvParametersActionInMoney(self):
         self.base_env._reset()
         size = self.base_env.size
