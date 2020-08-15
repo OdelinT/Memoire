@@ -1,6 +1,6 @@
 #region imports
-#from environment.PyEnv import PyEnv
 from environment.BasePyEnv import BasePyEnv
+from environment.AllowDeficitCostPyEnv import AllowDeficitCostPyEnv
 
 import unittest
 import copy
@@ -43,12 +43,17 @@ class test(unittest.TestCase):
         coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s')
         self.base_env = BasePyEnv()
         self.base_env2 = copy.deepcopy(self.base_env)
-        self.base_env3 = copy.deepcopy(self.base_env)
-        
-        self.tf_env = tf_py_environment.TFPyEnvironment(self.base_env)
-        self.train_env = tf_py_environment.TFPyEnvironment(self.base_env2)
-        self.eval_env = tf_py_environment.TFPyEnvironment(self.base_env3)
-        logging.info(self.train_env)
+        self.base_env3 = BasePyEnv()
+        self.base_tf_env = tf_py_environment.TFPyEnvironment(self.base_env)
+        self.base_train_env = tf_py_environment.TFPyEnvironment(self.base_env2)
+        self.base_eval_env = tf_py_environment.TFPyEnvironment(self.base_env3)
+
+        self.AllowDeficit_env = AllowDeficitCostPyEnv()
+        self.AllowDeficit_env2 = AllowDeficitCostPyEnv()
+        self.AllowDeficit_env3 = AllowDeficitCostPyEnv()
+        self.AllowDeficit_tf_env = tf_py_environment.TFPyEnvironment(self.AllowDeficit_env)
+        self.AllowDeficit_train_env = tf_py_environment.TFPyEnvironment(self.AllowDeficit_env2)
+        self.AllowDeficit_eval_env = tf_py_environment.TFPyEnvironment(self.AllowDeficit_env3)
     
     """ 15/08 : bug
     def testBaseEnvParametersCheck(self):
@@ -126,6 +131,33 @@ class test(unittest.TestCase):
     def testBaseEnvValidate(self):
         utils.validate_py_environment(self.base_env, episodes=5)
     
+    def testEnvironmentSeedForParametersGeneration(self):
+        duration = self.base_env.duration
+        size = self.base_env.size
+        placeSize = self.base_env.placeSize
+        productsCosts = self.base_env.productsCosts
+        productsUsualMarginRates = self.base_env.productsUsualMarginRates
+        productsUsualBuyingRates = self.base_env.productsUsualBuyingRates
+        productsUsualPrices = self.base_env.productsUsualPrices
+        #i = 0
+        for environment in [
+            self.base_env,
+            self.base_env2,
+            self.base_env3,
+            self.AllowDeficit_env,
+            self.AllowDeficit_env2,
+            self.AllowDeficit_env3
+        ]:
+            #i += 1
+            #logging.info(i)
+            self.assertEqual(duration, environment.duration)
+            self.assertEqual(size, environment.size)
+            self.assertEqual(placeSize, environment.placeSize)
+            self.assertEqual(productsCosts.all(), environment.productsCosts.all())
+            self.assertEqual(productsUsualMarginRates.all(), environment.productsUsualMarginRates.all())
+            self.assertEqual(productsUsualBuyingRates.all(), environment.productsUsualBuyingRates.all())
+            self.assertEqual(productsUsualPrices.all(), environment.productsUsualPrices.all())
+    
     #region Agent initialization methods
 
     # No error but reward=0 almost every time
@@ -133,16 +165,16 @@ class test(unittest.TestCase):
     def Reinforce(self):
         #region Agent initialization
         actor_net = actor_distribution_network.ActorDistributionNetwork(
-            self.train_env.observation_spec(),
-            self.train_env.action_spec(),
+            self.base_train_env.observation_spec(),
+            self.base_train_env.action_spec(),
             fc_layer_params=self.fc_layer_params)
         optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=self.learning_rate)
 
         train_step_counter = tf.compat.v2.Variable(0)
 
         tf_agent = reinforce_agent.ReinforceAgent(
-            self.train_env.time_step_spec(),
-            self.train_env.action_spec(),
+            self.base_train_env.time_step_spec(),
+            self.base_train_env.action_spec(),
             actor_network=actor_net,
             optimizer=optimizer,
             normalize_returns=True,
@@ -155,20 +187,20 @@ class test(unittest.TestCase):
     def TD3(self):
         #region Agent initialization
         actor_net = actor_distribution_network.ActorDistributionNetwork(
-            self.tf_env.observation_spec(),
-            self.tf_env.action_spec(),
+            self.base_tf_env.observation_spec(),
+            self.base_tf_env.action_spec(),
             fc_layer_params=self.fc_layer_params)
         critic_net = actor_distribution_network.ActorDistributionNetwork(
-            self.tf_env.observation_spec(),
-            self.tf_env.action_spec(),
+            self.base_tf_env.observation_spec(),
+            self.base_tf_env.action_spec(),
             fc_layer_params=self.fc_layer_params)
         
         actor_optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=self.learning_rate)
         critic_optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=self.learning_rate)
         
         tf_agent = tf_agents.agents.Td3Agent(
-            time_step_spec = self.tf_env.time_step_spec(), 
-            action_spec = self.tf_env.action_spec(),
+            time_step_spec = self.base_tf_env.time_step_spec(), 
+            action_spec = self.base_tf_env.action_spec(),
             actor_network = actor_net,
             critic_network = critic_net,
             actor_optimizer = actor_optimizer,
@@ -183,16 +215,16 @@ class test(unittest.TestCase):
     def DQN(self):
         #region DQN params from doc
         q_net = q_network.QNetwork(
-            self.train_env.observation_spec(),
-            self.train_env.action_spec(),
+            self.base_train_env.observation_spec(),
+            self.base_train_env.action_spec(),
             fc_layer_params=self.fc_layer_params)
         optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=self.learning_rate)
 
         train_step_counter = tf.Variable(0)
 
         tf_agent = dqn_agent.DqnAgent(
-            self.train_env.time_step_spec(),
-            self.train_env.action_spec(),
+            self.base_train_env.time_step_spec(),
+            self.base_train_env.action_spec(),
             q_network=q_net,
             optimizer=optimizer,
             td_errors_loss_fn=common.element_wise_squared_loss,
@@ -204,8 +236,8 @@ class test(unittest.TestCase):
 
     def SAC(self):
         #region Agent initialization
-        observation_spec = self.train_env.observation_spec()
-        action_spec = self.train_env.action_spec()
+        observation_spec = self.base_train_env.observation_spec()
+        action_spec = self.base_train_env.action_spec()
 
         critic_net = critic_network.CriticNetwork(
             (observation_spec, action_spec),
@@ -221,7 +253,7 @@ class test(unittest.TestCase):
         global_step = tf.compat.v1.train.get_or_create_global_step()
 
         tf_agent = sac_agent.SacAgent(
-            self.train_env.time_step_spec(),
+            self.base_train_env.time_step_spec(),
             action_spec,
             actor_network=actor_net,
             critic_network=critic_net,
@@ -245,9 +277,9 @@ class test(unittest.TestCase):
     
     def BehavioralCloning(self):
         #region Agent initialization
-        observation_spec = self.train_env.observation_spec()
-        action_spec = self.train_env.action_spec()
-        time_step_spec = self.train_env.time_step_spec()
+        observation_spec = self.base_train_env.observation_spec()
+        action_spec = self.base_train_env.action_spec()
+        time_step_spec = self.base_train_env.time_step_spec()
         critic_net = critic_network.CriticNetwork(
             (observation_spec, action_spec),
             observation_fc_layer_params=None,
@@ -266,8 +298,8 @@ class test(unittest.TestCase):
     #https://www.tensorflow.org/agents/api_docs/python/tf_agents/agents/DdpgAgent
     def DDPG(self):
         #region Agent initialization
-        observation_spec = self.train_env.observation_spec()
-        action_spec = self.train_env.action_spec()
+        observation_spec = self.base_train_env.observation_spec()
+        action_spec = self.base_train_env.action_spec()
 
         critic_net = critic_network.CriticNetwork(
             (observation_spec, action_spec),
@@ -281,7 +313,7 @@ class test(unittest.TestCase):
             continuous_projection_net=self.normal_projection_net)
 
         tf_agent = ddpg_agent.DdpgAgent(
-            self.train_env.time_step_spec(),
+            self.base_train_env.time_step_spec(),
             action_spec,
             actor_network=actor_net,
             critic_network=critic_net,
@@ -296,14 +328,14 @@ class test(unittest.TestCase):
         #region Initialize agent
         optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=self.learning_rate)
         actor_net = actor_distribution_network.ActorDistributionNetwork(
-            self.train_env.observation_spec(),
-            self.train_env.action_spec(),
+            self.base_train_env.observation_spec(),
+            self.base_train_env.action_spec(),
             fc_layer_params=self.actor_fc_layer_params)
         value_net = value_network.ValueNetwork(
-            self.train_env.observation_spec())
+            self.base_train_env.observation_spec())
         tf_agent = ppo_agent.PPOAgent(
-            self.train_env.time_step_spec(),
-            self.train_env.action_spec(),
+            self.base_train_env.time_step_spec(),
+            self.base_train_env.action_spec(),
             optimizer = optimizer,
             actor_net = actor_net,
             value_net = value_net)
@@ -315,7 +347,7 @@ class test(unittest.TestCase):
     #endregion
     
     
-    def testAll(self):
+    def BaseTest(self):
         #region Hyperparameters from the example of the documentation
         # use "num_iterations = 1e6" for better results,
         # 1e5 is just so this doesn't take too long. 
@@ -377,11 +409,11 @@ class test(unittest.TestCase):
             
             collect_policy = tf_agent.collect_policy
             random_policy  = random_tf_policy.RandomTFPolicy(
-                self.train_env.time_step_spec(),
-                self.train_env.action_spec())
+                self.base_train_env.time_step_spec(),
+                self.base_train_env.action_spec())
             replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
                 data_spec=tf_agent.collect_data_spec,
-                batch_size=self.train_env.batch_size,
+                batch_size=self.base_train_env.batch_size,
                 max_length=self.replay_buffer_capacity)
             
             #region Agent training
@@ -406,7 +438,7 @@ class test(unittest.TestCase):
             #region Agent training results
             greedy = greedy_policy.GreedyPolicy(tf_agent.policy)
             logging.info('Test agent result')
-            self.compute_avg_return(self.eval_env, greedy, self.num_eval_episodes, display=False)
+            self.compute_avg_return(self.base_eval_env, greedy, self.num_eval_episodes, display=False)
             #endregion
 
             data = replay_buffer.gather_all()
@@ -416,6 +448,79 @@ class test(unittest.TestCase):
                 pickle.dump(data, file)
         except Exception as e:
             logging.error(e)
+    
+    def testCompareOverParametrized(self):
+        #region Hyperparameters from the example of the documentation
+        # use "num_iterations = 1e6" for better results,
+        # 1e5 is just so this doesn't take too long. 
+        self.num_iterations = 10000
+        self.log_interval = self.num_iterations / 5
+        self.eval_interval = self.num_iterations / 5
+        self.num_eval_episodes = 100
+
+        self.collect_steps_per_iteration = 10
+        self.initial_collect_steps = self.collect_steps_per_iteration
+        self.replay_buffer_capacity = self.num_iterations
+
+        self.batch_size = 256 
+
+        self.learning_rate = 3e-3
+        self.critic_learning_rate = self.learning_rate
+        self.actor_learning_rate = self.learning_rate
+        self.alpha_learning_rate = self.learning_rate
+        self.target_update_tau = 0.05 
+        self.target_update_period = 1 
+        self.gamma = 0.99 
+        self.reward_scale_factor = 1.0 
+        self.gradient_clipping = None # @param
+
+        self.fc_layer_params = (256, 256)
+        self.actor_fc_layer_params = self.fc_layer_params
+        self.critic_joint_fc_layer_params = self.fc_layer_params
+        #endregion
+
+        training=3
+        algo='SAC'
+
+        for env in [
+            {
+                "train" : self.base_train_env, 
+                "eval" : self.base_eval_env, 
+                "name": "Environment that don't allow to sell at lost"
+            }, {
+                "train" : self.AllowDeficit_train_env, 
+                "eval" : self.AllowDeficit_eval_env, 
+                "name": "Environment that allows to sell at lost"
+            }
+        ]:
+            logging.info('----------------------------------')
+            logging.info(f'Starting to test {env["name"]}')
+            logging.info('----------------------------------')
+            try:
+                tf_agent = self.SAC()
+                
+                collect_policy = tf_agent.collect_policy
+                random_policy  = random_tf_policy.RandomTFPolicy(
+                    env["train"].time_step_spec(),
+                    env["train"].action_spec())
+                replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
+                    data_spec=tf_agent.collect_data_spec,
+                    batch_size=env["train"].batch_size,
+                    max_length=self.replay_buffer_capacity)
+                
+                #region Agent training
+                logging.info(f'Starting agent training over {self.num_iterations} steps')
+                self.train3(tf_agent=tf_agent, collect_policy=collect_policy, replay_buffer=replay_buffer, initial_collect_steps=self.initial_collect_steps, num_iterations=self.num_iterations, num_eval_episodes=self.num_eval_episodes, eval_interval=self.eval_interval, log_interval=self.log_interval, train_env=env["train"], eval_env=env["eval"])
+                logging.info('Agent training finished')
+                #endregion
+
+                #region Agent training results
+                greedy = greedy_policy.GreedyPolicy(tf_agent.policy)
+                logging.info('Test agent result')
+                self.compute_avg_return(self.base_eval_env, greedy, self.num_eval_episodes, display=False)
+                #endregion
+            except Exception as e:
+                logging.error(e)
     
     
     def testReadDumpedData(self):
@@ -458,7 +563,7 @@ class test(unittest.TestCase):
     # DynamicStepDriver doesn't stop. Try with cuda ?
     def trainAvecDynamicStepDriver(self, tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval, collect_steps_per_iteration=10):
         initial_collect_driver = dynamic_step_driver.DynamicStepDriver(
-            self.train_env,
+            self.base_train_env,
             collect_policy,
             observers=[replay_buffer.add_batch],
             num_steps=initial_collect_steps)
@@ -471,7 +576,7 @@ class test(unittest.TestCase):
 
         iterator = iter(dataset)
         collect_driver = dynamic_step_driver.DynamicStepDriver(
-            self.train_env,
+            self.base_train_env,
             collect_policy,
             observers=[replay_buffer.add_batch],
             num_steps=collect_steps_per_iteration)
@@ -487,7 +592,7 @@ class test(unittest.TestCase):
 
         logging.info("Evaluate the agent's policy once before training")
         # Evaluate the agent's policy once before training.
-        avg_return = self.compute_avg_return(self.eval_env, tf_agent.policy, num_eval_episodes)
+        avg_return = self.compute_avg_return(self.base_eval_env, tf_agent.policy, num_eval_episodes)
         returns = [avg_return]
 
         for i in range(num_iterations):
@@ -505,7 +610,7 @@ class test(unittest.TestCase):
                 logging.info('step = {0}: loss = {1}'.format(step, train_loss.loss))
 
             if step % eval_interval == 0:
-                avg_return = self.compute_avg_return(self.eval_env, greedy_policy.GreedyPolicy(tf_agent.policy), num_eval_episodes)
+                avg_return = self.compute_avg_return(self.base_eval_env, greedy_policy.GreedyPolicy(tf_agent.policy), num_eval_episodes)
                 logging.info('step = {0}: Average Return = {1}'.format(step, avg_return))
                 returns.append(avg_return)
 
@@ -519,7 +624,7 @@ class test(unittest.TestCase):
         tf_agent.train_step_counter.assign(0)
 
         # Evaluate the agent's policy once before training.
-        avg_return = self.compute_avg_return(self.eval_env, tf_agent.policy, num_eval_episodes)
+        avg_return = self.compute_avg_return(self.base_eval_env, tf_agent.policy, num_eval_episodes)
         returns = [avg_return]
         replay_buffer.clear()
         logging.warning(self.num_iterations)
@@ -527,7 +632,7 @@ class test(unittest.TestCase):
             #logging.info(f"Iteration {i+1} out of {num_iterations}")
             # Collect a few episodes using collect_policy and save to the replay buffer.
             self.collect_episode(
-                self.train_env, tf_agent.collect_policy, replay_buffer, collect_episodes_per_iteration)
+                self.base_train_env, tf_agent.collect_policy, replay_buffer, collect_episodes_per_iteration)
 
             # Use data from the buffer and update the agent's network.
             experience = replay_buffer.gather_all()
@@ -540,18 +645,22 @@ class test(unittest.TestCase):
                 logging.info('step = {0}: loss = {1}'.format(i, train_loss))
 
             if i % eval_interval == 0:
-                avg_return = self.compute_avg_return(self.eval_env, tf_agent.policy, num_eval_episodes)
+                avg_return = self.compute_avg_return(self.base_eval_env, tf_agent.policy, num_eval_episodes)
                 logging.info('step = {0}: Average Return = {1}'.format(i, avg_return))
                 returns.append(avg_return)
 
     # https://github.com/tensorflow/agents/blob/master/docs/tutorials/1_dqn_tutorial.ipynb
-    def train3(self, tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval, collect_steps_per_iteration = 10):
+    def train3(self, tf_agent, collect_policy, replay_buffer, initial_collect_steps, num_iterations, num_eval_episodes, eval_interval, log_interval, collect_steps_per_iteration = 10, train_env = None, eval_env=None):
+        if train_env is None:
+            train_env = self.base_train_env
+        if eval_env is None:
+            eval_env = self.base_eval_env
         # Initialize data collection with random tests
         random_policy = random_tf_policy.RandomTFPolicy(
-            self.train_env.time_step_spec(), 
-            self.train_env.action_spec())
+            train_env.time_step_spec(), 
+            train_env.action_spec())
 
-        self.collect_data(self.train_env, random_policy, replay_buffer, steps=2)
+        self.collect_data(train_env, random_policy, replay_buffer, steps=2)
         dataset = replay_buffer.as_dataset(
             num_parallel_calls=3, 
             sample_batch_size=64, 
@@ -572,7 +681,7 @@ class test(unittest.TestCase):
             # Collect a few steps using collect_policy and save to the replay buffer.
             #for _ in range(collect_steps_per_iteration):
             for _ in range(2):
-                self.collect_step(self.train_env, collect_policy, replay_buffer, i)
+                self.collect_step(train_env, collect_policy, replay_buffer, i)
                 # Sample a batch of data from the buffer and update the agent's network.
                 experience, unused_info = next(iterator)
                 
@@ -585,7 +694,7 @@ class test(unittest.TestCase):
 
             if i % eval_interval == 0:
                 logging.info('step = {0}:'.format(i))
-                avg_return = self.compute_avg_return(self.eval_env, greedy_policy.GreedyPolicy(tf_agent.policy), num_eval_episodes)
+                avg_return = self.compute_avg_return(eval_env, greedy_policy.GreedyPolicy(tf_agent.policy), num_eval_episodes)
                 returns.append(avg_return)
 
     # https://github.com/tensorflow/agents/blob/master/docs/tutorials/1_dqn_tutorial.ipynb
@@ -593,7 +702,7 @@ class test(unittest.TestCase):
         policy = greedy_policy.GreedyPolicy(tf_agent.policy)
         
         # Initialize data collection
-        self.collect_data(self.train_env, policy, replay_buffer, steps=2)
+        self.collect_data(self.base_train_env, policy, replay_buffer, steps=2)
         dataset = replay_buffer.as_dataset(
             num_parallel_calls=3, 
             sample_batch_size=64, 
@@ -614,7 +723,7 @@ class test(unittest.TestCase):
             # Collect a few steps using collect_policy and save to the replay buffer.
             #for _ in range(collect_steps_per_iteration):
             for _ in range(2):
-                self.collect_step(self.train_env, policy, replay_buffer, i)
+                self.collect_step(self.base_train_env, policy, replay_buffer, i)
 
                 # Sample a batch of data from the buffer and update the agent's network.
                 experience, unused_info = next(iterator)
@@ -628,7 +737,7 @@ class test(unittest.TestCase):
 
             if i % eval_interval == 0:
                 logging.info('step = {0}:'.format(i))
-                avg_return = self.compute_avg_return(self.train_env, policy, num_eval_episodes)
+                avg_return = self.compute_avg_return(self.base_train_env, policy, num_eval_episodes)
                 returns.append(avg_return)
 
     

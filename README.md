@@ -21,18 +21,27 @@ python app.py
 
 ### To analyse exceptions
 
+#### Of all the test cases
+__TAKES A FEW HOURS__
+
 ~~~~
 pytest -q .\test\test.py
 ~~~~
+
+#### Of a specific test
+
+~~~
+pytest -q .\test\test.py::test::NameOfTheTest
+~~~
 
 ### To only see the results
 
 #### Of all the test cases
 __TAKES A FEW HOURS__
 
-~~~~
+~~~
 python -m unittest discover
-~~~~
+~~~
 
 #### Of a specific test
 
