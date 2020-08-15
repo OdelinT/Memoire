@@ -338,6 +338,18 @@ self._action_spec = array_spec.BoundedArraySpec(
  shape=(1,), dtype=np.float32, minimum=1, maximum=100, name='action')
 ~~~
 
+Avec certains algorithmes, on obtient les premiers résultats positifs dès les premières itérations si le prix minimal est le coût unitaire, au bout de plusieurs milliers d'itérations si le prix minimal est de 0.
+
+Cependant, ce genre d'approche peut empêcher l'agent d'être optimal dans certains cas :
+
+- Péremption d'un produit
+
+- Un produit d'appel peut être vendu à perte afin de permettre de vendre plus au final (essence à la station-service d'un hypermarché, par exemple)
+
+Pour le cas d'un produit d'appel, nous ne verrons pas ici de mesure du manque à gagner possible, car celui-ci ne peut dépendre que de cas réels très spécifiques.
+
+Le cas de la péremption comprend beaucoup de paramètres, et en établir une simulation réaliste risque d'être trop complexe. On fera donc ici une approximation de la possible différence de résulat entre un agent pouvant vendre à perte et un autre qui ne le peut pas.
+
 ### b) Variable importante invisible
 
 Un paramètre inconnu (la taille des magasins) est créé, et influence les résultats. Ensuite, on modifie ce paramètre, ou on ajoute des situations en moyenne différente (plus grands ou plus petits), et on observe l'inertie de l'agent en comparant ses résultats à ceux qu'il aurait obtenu sur l'environnement directement à l'étape finale.
@@ -381,19 +393,23 @@ En utilisant le biais du razoir d'Ockham (privilégier les modèles les plus sim
 
 ## A- Trop paramétrer l'environnement
 
-### __CHIFFRES et commit exact de l'expérience ?__
+### Avantage du sur-paramétrage en terme de vitesse d'apprentissage
 
-Avec certains algorithmes, on obtient les premiers résultats positifs dès les premières itérations si le prix minimal est le coût unitaire, au bout de plusieurs milliers d'itérations si le prix minimal est de 0.
+Voilà un tableau des résultats obtenus après au fur et à mesure d'un apprentissage sur 10 000 étapes.
 
-Cependant, ce genre d'approche peut empêcher l'agent d'être optimal dans certains cas :
+| Evaluation step | Résultats en cas de vente à perte autorisée | Résultats en cas de vente à perte interdite |
+|--------|--------:|--------:|
+|     0  |       0 |       0 |
+|  2000  |   2 995 |   4 994 |
+|  4000  |   5 621 |  11 849 |
+|  6000  |   4 766 |  15 283 |
+|  8000  |   4 112 |  18 320 |
+| 10000  |   8 165 |  20 326 |
 
-- Péremption d'un produit
+Bien que les résultats peuvent changer aléatoirement lors de l'exécution de l'algorithme SAC, on observe en général plus rapidement de bien meilleurs résultats sur un environnement où l'agent ne vendra pas à perte.
 
-- Un produit d'appel peut être vendu à perte afin de permettre de vendre plus au final (essence à la station-service d'un hypermarché, par exemple)
 
-Pour le cas d'un produit d'appel, nous ne verrons pas ici de mesure du manque à gagner possible, car celui-ci ne peut dépendre que de cas réels très spécifiques.
-
-Le cas de la péremption comprend beaucoup de paramètres, et en établir une simulation réaliste risque d'être trop complexe. On fera donc ici une approximation de la possible différence de résulat entre un agent pouvant vendre à perte et un autre qui ne le peut pas.
+### Inconvénients du sur-paramétrage en terme de résultat
 
 __Si on suppose qu'un produit périmé à un prix supérieur ou égal à son coût ne se vendra pas__ (hypothèse coûteuse en soi) :
 

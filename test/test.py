@@ -55,8 +55,8 @@ class test(unittest.TestCase):
         self.AllowDeficit_train_env = tf_py_environment.TFPyEnvironment(self.AllowDeficit_env2)
         self.AllowDeficit_eval_env = tf_py_environment.TFPyEnvironment(self.AllowDeficit_env3)
     
-    """ 15/08 : bug
-    def testBaseEnvParametersCheck(self):
+    # 15/08 : bug
+    def testBaseEnvParametersActionInMoney(self):
         self.base_env._reset()
         size = self.base_env.size
         #region Test environment parameters generation
@@ -126,7 +126,74 @@ class test(unittest.TestCase):
         if observation.reward > usualReward:
             logging.error(f"Error: An unusual price such as 1000 shouldn't cause a best result than the usual price. Error ratio: {observation.reward / usualReward}")
         #endregion
-    """
+    
+    
+    def testBaseEnvParametersActionInMultiplicator(self):
+        self.base_env._reset()
+        size = self.base_env.size
+        #region Test environment parameters generation
+        logging.info("Test environment parameters generation")
+        for value in self.base_env.productsCosts:
+            if value < 0:
+                logging.error("At least one product cost < 0")
+        for value in self.base_env.productsUsualMarginRates:
+            if value < 0:
+                logging.error("At least one margin rate < 0")
+            if value > 1:
+                logging.error("At least one margin rate > 1")
+        for value in self.base_env.productsUsualBuyingRates:
+            if value <= 0:
+                logging.error("At least one buying rate <= 0")
+        for i in range(len(self.base_env.productsUsualPrices)):
+            if self.base_env.productsUsualPrices[i] < self.base_env.productsCosts[i]:
+                logging.error("At least one usual price smaller than product cost")
+        #endregion
+
+        #region Test environment credibility with different prices
+        logging.info("Test environment credibility with different prices")
+        observation = self.base_env._step(np.zeros(size) + 1)
+        logging.info(f"Product costs: {observation}")
+        costReward = observation.reward
+        if observation.reward != 0:
+            logging.error("Error: If we sell at product cost, there should be no margin")
+
+        observation = self.base_env._step(np.zeros(size) + 2)
+        logging.info(f"Product costs *2: {observation}")
+        if observation.reward <= 0 and np.sum(observation.observation) > 0:
+            logging.error("Error: If we sell at more than product cost, there should be a margin")
+
+        observation = self.base_env._step(np.zeros(size) + 10)
+        logging.info(f"Product costs *10: {observation}")
+        if observation.reward <= 0 and np.sum(observation.observation) > 0:
+            logging.error("Error: If we sell at more than product cost, there should be a margin")
+
+        observation = self.base_env._step((np.zeros(size) + 1) / (1 - self.base_env.productsUsualMarginRates))
+        logging.info(f"Usual buying price: {observation}")
+        usualReward = observation.reward
+
+        observation = self.base_env._step((np.zeros(size) + 2) / (1 - self.base_env.productsUsualMarginRates))
+        logging.info(f"Usual buying price *2: {observation}")
+        logging.info(f"Compared to usual: {observation.reward / usualReward}")
+
+        observation = self.base_env._step((np.zeros(size) + 4) / (1 - self.base_env.productsUsualMarginRates))
+        logging.info(f"Usual buying price *4: {observation}")
+        logging.info(f"Compared to usual: {observation.reward / usualReward}")
+
+        observation = self.base_env._step((np.zeros(size) + 10) / (1 - self.base_env.productsUsualMarginRates))
+        logging.info(f"Usual buying price *10: {observation}")
+        logging.info(f"Compared to usual: {observation.reward / usualReward}")
+
+        observation = self.base_env._step(np.zeros(size))
+        logging.info(f"0: {observation}")
+        if observation.reward >= 0.:
+            logging.error("Error: If prices are 0, we should sell and have a deficit")
+
+        observation = self.base_env._step(np.zeros(size) + 0.1)
+        logging.info(f"0.1: {observation}")
+        if observation.reward >= 0:
+            logging.error("Error: If prices are a tenth of costs, we should sell and have a deficit")
+        #endregion
+    
     
     def testBaseEnvValidate(self):
         utils.validate_py_environment(self.base_env, episodes=5)
@@ -478,9 +545,6 @@ class test(unittest.TestCase):
         self.actor_fc_layer_params = self.fc_layer_params
         self.critic_joint_fc_layer_params = self.fc_layer_params
         #endregion
-
-        training=3
-        algo='SAC'
 
         for env in [
             {
