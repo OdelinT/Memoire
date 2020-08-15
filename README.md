@@ -25,8 +25,17 @@ python app.py
 pytest -q .\test\test.py
 ~~~~
 
-### To see the results of the test cases
+### To only see the results
+
+#### Of all the test cases
+__TAKES A FEW HOURS__
 
 ~~~~
 python -m unittest discover
 ~~~~
+
+#### Of a specific test
+
+~~~
+python -m unittest test.test.test.NameOfTheTest
+~~~

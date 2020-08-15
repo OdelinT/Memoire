@@ -333,6 +333,11 @@ self._action_spec = array_spec.BoundedArraySpec(
  shape=(1,), dtype=np.float32, minimum=1, maximum=100, name='action')
 ~~~
 
+~~~ Python
+self._action_spec = array_spec.BoundedArraySpec(
+ shape=(1,), dtype=np.float32, minimum=1, maximum=100, name='action')
+~~~
+
 ### b) Variable importante invisible
 
 Un paramètre inconnu (la taille des magasins) est créé, et influence les résultats. Ensuite, on modifie ce paramètre, ou on ajoute des situations en moyenne différente (plus grands ou plus petits), et on observe l'inertie de l'agent en comparant ses résultats à ceux qu'il aurait obtenu sur l'environnement directement à l'étape finale.
@@ -376,7 +381,7 @@ En utilisant le biais du razoir d'Ockham (privilégier les modèles les plus sim
 
 ## A- Trop paramétrer l'environnement
 
-__CHIFFRES et commit exact de l'expérience ?__
+### __CHIFFRES et commit exact de l'expérience ?__
 
 Avec certains algorithmes, on obtient les premiers résultats positifs dès les premières itérations si le prix minimal est le coût unitaire, au bout de plusieurs milliers d'itérations si le prix minimal est de 0.
 
@@ -388,7 +393,7 @@ Cependant, ce genre d'approche peut empêcher l'agent d'être optimal dans certa
 
 Pour le cas d'un produit d'appel, nous ne verrons pas ici de mesure du manque à gagner possible, car celui-ci ne peut dépendre que de cas réels très spécifiques.
 
-Pour le cas de la péremption :
+Le cas de la péremption comprend beaucoup de paramètres, et en établir une simulation réaliste risque d'être trop complexe. On fera donc ici une approximation de la possible différence de résulat entre un agent pouvant vendre à perte et un autre qui ne le peut pas.
 
 __Si on suppose qu'un produit périmé à un prix supérieur ou égal à son coût ne se vendra pas__ (hypothèse coûteuse en soi) :
 
@@ -409,6 +414,8 @@ Empêcher un agent de vendre à perte des denrées alimentaires peut occasionner
 Soit un manque à gagner de 3,3% * 70% * 120% ~= 2,8% de ses coûts, soit (2,8 / 120%) / 2,9 ~= 80% de la marge opérationnelle courante d'une entreprise de grande distribution telle que Carrefour.
 
 > https://bfmbusiness.bfmtv.com/entreprise/carrefour-a-renoue-avec-les-benefices-en-2019-apres-deux-annees-dans-le-rouge-1865256.html#:~:text=Quant%20%C3%A0%20la%20marge%20op%C3%A9rationnelle,r%C3%A9sultat%20net%20part%20du%20groupe).
+
+En conclusion, dans une situation où les produits vendus peuvent périmer, et où ceux-ci sont à faible valeur ajoutée, il est théoriquement possible qu'un agent chargé gérer les prix avec interdiction de vendre à perte aie de moins bons résultats qu'un autre. Cette différence pourrait être d'un ordre de grandeur comparable à celui de la marge opérationnelle de celui qui a le droit de vendre à perte.
 
 ## B- Variable importante invisible
 

@@ -17,7 +17,7 @@ import random
 
 tf.compat.v1.enable_v2_behavior()
 
-class SimplifiedPyEnv(py_environment.PyEnvironment):
+class BasePyEnv(py_environment.PyEnvironment):
     def __init__(self):
         self.duration = 30
         self.size = 10

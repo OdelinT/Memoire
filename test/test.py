@@ -1,6 +1,7 @@
 #region imports
-from environment.PyEnv import PyEnv
-from environment.SimplifiedPyEnv import SimplifiedPyEnv
+#from environment.PyEnv import PyEnv
+from environment.BasePyEnv import BasePyEnv
+
 import unittest
 import copy
 from tf_agents.environments import utils
@@ -40,246 +41,90 @@ import numpy as np
 class test(unittest.TestCase):
     def setUp(self):
         coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s')
-        self.env = PyEnv()
-        self.env2 = copy.deepcopy(self.env)
-        self.env3 = copy.deepcopy(self.env)
-        self.senv = SimplifiedPyEnv()
-        self.senv2 = copy.deepcopy(self.senv)
-        self.senv3 = copy.deepcopy(self.senv)
-
-        self.tf_env = tf_py_environment.TFPyEnvironment(self.senv)
-        self.train_env = tf_py_environment.TFPyEnvironment(self.senv2)
-        self.eval_env = tf_py_environment.TFPyEnvironment(self.senv3)
+        self.base_env = BasePyEnv()
+        self.base_env2 = copy.deepcopy(self.base_env)
+        self.base_env3 = copy.deepcopy(self.base_env)
+        
+        self.tf_env = tf_py_environment.TFPyEnvironment(self.base_env)
+        self.train_env = tf_py_environment.TFPyEnvironment(self.base_env2)
+        self.eval_env = tf_py_environment.TFPyEnvironment(self.base_env3)
         logging.info(self.train_env)
-    """
-    def testSimplifiedMyValidate(self):
-        self.senv._reset()
-        size = self.senv.size
-        #region Test environment parameters generation
-        logging.info("Test environment parameters generation")
-        for value in self.senv.productsCosts:
-            if value < 0:
-                logging.error("At least one product cost < 0")
-        for value in self.senv.productsUsualMarginRates:
-            if value < 0:
-                logging.error("At least one margin rate < 0")
-            if value > 1:
-                logging.error("At least one margin rate > 1")
-        for value in self.senv.productsUsualBuyingRates:
-            if value <= 0:
-                logging.error("At least one buying rate <= 0")
-        for i in range(len(self.senv.productsUsualPrices)):
-            if self.senv.productsUsualPrices[i] < self.senv.productsCosts[i]:
-                logging.error("At least one usual price smaller than product cost")
-        #endregion
-
-        #region Test environment credibility with different prices
-        logging.info("Test environment credibility with different prices")
-        observation = self.senv._step(self.senv.productsCosts)
-        logging.info(f"Product costs: {observation}")
-        costReward = observation.reward
-        if observation.reward != 0:
-            logging.error("Error: If we sell at product cost, there should be no margin")
-
-        observation = self.senv._step(self.senv.productsCosts * 2)
-        logging.info(f"Product costs *2: {observation}")
-        if observation.reward <= 0 and np.sum(observation.observation) > 0:
-            logging.error("Error: If we sell at more than product cost, there should be a margin")
-
-        observation = self.senv._step(self.senv.productsCosts * 10)
-        logging.info(f"Product costs *10: {observation}")
-        if observation.reward <= 0 and np.sum(observation.observation) > 0:
-            logging.error("Error: If we sell at more than product cost, there should be a margin")
-
-        observation = self.senv._step(self.senv.productsUsualPrices)
-        logging.info(f"Usual buying price: {observation}")
-        usualReward = observation.reward
-
-        observation = self.senv._step(self.senv.productsUsualPrices * 2)
-        logging.info(f"Usual buying price *2: {observation}")
-        logging.info(f"Compared to usual: {observation.reward / usualReward}")
-
-        observation = self.senv._step(self.senv.productsUsualPrices * 4)
-        logging.info(f"Usual buying price *4: {observation}")
-        logging.info(f"Compared to usual: {observation.reward / usualReward}")
-
-        observation = self.senv._step(self.senv.productsUsualPrices * 10)
-        logging.info(f"Usual buying price *10: {observation}")
-        logging.info(f"Compared to usual: {observation.reward / usualReward}")
-
-        observation = self.senv._step(np.zeros(size))
-        logging.info(f"0: {observation}")
-        if observation.reward >= 0.:
-            logging.error("Error: If prices are 0, we should sell and have a deficit")
-
-        observation = self.senv._step(np.zeros(size) + 1)
-        logging.info(f"1: {observation}")
-        if observation.reward >= 0:
-            logging.error("Error: If prices are 1 and average cost 10, we should sell and have a deficit")
-
-        observation = self.senv._step(np.zeros(size) + 1000)
-        logging.info(f"1000: {observation}")
-        if observation.reward > usualReward:
-            logging.error("Error: An unusual price such as 1000 shouldn't cause a best result than the usual price. Error ratio: ", observation.reward / usualReward)
-        #endregion
-    """
-    """
-    def testSimplifiedValidate(self):
-        utils.validate_py_environment(self.senv, episodes=5)
-    """
-    """
-    def testSimplifiedMyValidate(self):
-        self.senv._reset()
-        size = self.senv.size
-        #region Test environment parameters generation
-        logging.info("Test environment parameters generation")
-        for value in self.senv.productsCosts:
-            if value < 0:
-                logging.error("At least one product cost < 0")
-        for value in self.senv.productsUsualMarginRates:
-            if value < 0:
-                logging.error("At least one margin rate < 0")
-            if value > 1:
-                logging.error("At least one margin rate > 1")
-        for value in self.senv.productsUsualBuyingRates:
-            if value <= 0:
-                logging.error("At least one buying rate <= 0")
-        for i in range(len(self.senv.productsUsualPrices)):
-            if self.senv.productsUsualPrices[i] < self.senv.productsCosts[i]:
-                logging.error("At least one usual price smaller than product cost")
-        #endregion
-
-        #region Test environment credibility with different prices
-        logging.info("Test environment credibility with different prices")
-        observation = self.senv._step(self.senv.productsCosts)
-        logging.info(f"Product costs: {observation}")
-        costReward = observation.reward
-        if observation.reward != 0:
-            logging.error("Error: If we sell at product cost, there should be no margin")
-
-        observation = self.senv._step(self.senv.productsCosts * 2)
-        logging.info(f"Product costs *2: {observation}")
-        if observation.reward <= 0 and np.sum(observation.observation) > 0:
-            logging.error("Error: If we sell at more than product cost, there should be a margin")
-
-        observation = self.senv._step(self.senv.productsCosts * 10)
-        logging.info(f"Product costs *10: {observation}")
-        if observation.reward <= 0 and np.sum(observation.observation) > 0:
-            logging.error("Error: If we sell at more than product cost, there should be a margin")
-
-        observation = self.senv._step(self.senv.productsUsualPrices)
-        logging.info(f"Usual buying price: {observation}")
-        usualReward = observation.reward
-
-        observation = self.senv._step(self.senv.productsUsualPrices * 2)
-        logging.info(f"Usual buying price *2: {observation}")
-        logging.info(f"Compared to usual: {observation.reward / usualReward}")
-
-        observation = self.senv._step(self.senv.productsUsualPrices * 4)
-        logging.info(f"Usual buying price *4: {observation}")
-        logging.info(f"Compared to usual: {observation.reward / usualReward}")
-
-        observation = self.senv._step(self.senv.productsUsualPrices * 10)
-        logging.info(f"Usual buying price *10: {observation}")
-        logging.info(f"Compared to usual: {observation.reward / usualReward}")
-
-        observation = self.senv._step(np.zeros(size))
-        logging.info(f"0: {observation}")
-        if observation.reward >= 0.:
-            logging.error("Error: If prices are 0, we should sell and have a deficit")
-
-        observation = self.senv._step(np.zeros(size) + 1)
-        logging.info(f"1: {observation}")
-        if observation.reward >= 0:
-            logging.error("Error: If prices are 1 and average cost 10, we should sell and have a deficit")
-
-        observation = self.senv._step(np.zeros(size) + 1000)
-        logging.info(f"1000: {observation}")
-        if observation.reward > usualReward:
-            logging.error("Error: An unusual price such as 1000 shouldn't cause a best result than the usual price. Error ratio: ", observation.reward / usualReward)
-        #endregion
     
-    def testSimplifiedValidate(self):
-        utils.validate_py_environment(self.senv, episodes=5)
-    """
-    """
-    def testMyValidate(self):
-        self.env._reset()
-        size = self.env.size
+    """ 15/08 : bug
+    def testBaseEnvParametersCheck(self):
+        self.base_env._reset()
+        size = self.base_env.size
         #region Test environment parameters generation
         logging.info("Test environment parameters generation")
-        for value in self.env.placesSizes:
-            if value < 0:
-                logging.error("At least one place size < 0")
-        for value in self.env.productsCosts:
+        for value in self.base_env.productsCosts:
             if value < 0:
                 logging.error("At least one product cost < 0")
-        for value in self.env.productsUsualMarginRates:
+        for value in self.base_env.productsUsualMarginRates:
             if value < 0:
                 logging.error("At least one margin rate < 0")
             if value > 1:
                 logging.error("At least one margin rate > 1")
-        for value in self.env.productsUsualBuyingRates:
+        for value in self.base_env.productsUsualBuyingRates:
             if value <= 0:
                 logging.error("At least one buying rate <= 0")
-        for i in range(len(self.env.productsUsualPrices)):
-            if self.env.productsUsualPrices[i] < self.env.productsCosts[i]:
+        for i in range(len(self.base_env.productsUsualPrices)):
+            if self.base_env.productsUsualPrices[i] < self.base_env.productsCosts[i]:
                 logging.error("At least one usual price smaller than product cost")
         #endregion
 
         #region Test environment credibility with different prices
         logging.info("Test environment credibility with different prices")
-        observation = self.env._step(self.env.productsCosts)
+        observation = self.base_env._step(self.base_env.productsCosts)
         logging.info(f"Product costs: {observation}")
         costReward = observation.reward
         if observation.reward != 0:
             logging.error("Error: If we sell at product cost, there should be no margin")
 
-        observation = self.env._step(self.env.productsCosts * 2)
+        observation = self.base_env._step(self.base_env.productsCosts * 2)
         logging.info(f"Product costs *2: {observation}")
         if observation.reward <= 0 and np.sum(observation.observation) > 0:
             logging.error("Error: If we sell at more than product cost, there should be a margin")
 
-        observation = self.env._step(self.env.productsCosts * 10)
+        observation = self.base_env._step(self.base_env.productsCosts * 10)
         logging.info(f"Product costs *10: {observation}")
         if observation.reward <= 0 and np.sum(observation.observation) > 0:
             logging.error("Error: If we sell at more than product cost, there should be a margin")
 
-        observation = self.env._step(self.env.productsUsualPrices)
+        observation = self.base_env._step(self.base_env.productsUsualPrices)
         logging.info(f"Usual buying price: {observation}")
         usualReward = observation.reward
 
-        observation = self.env._step(self.env.productsUsualPrices * 2)
+        observation = self.base_env._step(self.base_env.productsUsualPrices * 2)
         logging.info(f"Usual buying price *2: {observation}")
         logging.info(f"Compared to usual: {observation.reward / usualReward}")
 
-        observation = self.env._step(self.env.productsUsualPrices * 4)
+        observation = self.base_env._step(self.base_env.productsUsualPrices * 4)
         logging.info(f"Usual buying price *4: {observation}")
         logging.info(f"Compared to usual: {observation.reward / usualReward}")
 
-        observation = self.env._step(self.env.productsUsualPrices * 10)
+        observation = self.base_env._step(self.base_env.productsUsualPrices * 10)
         logging.info(f"Usual buying price *10: {observation}")
         logging.info(f"Compared to usual: {observation.reward / usualReward}")
 
-        observation = self.env._step(np.zeros(size))
+        observation = self.base_env._step(np.zeros(size))
         logging.info(f"0: {observation}")
         if observation.reward >= 0.:
             logging.error("Error: If prices are 0, we should sell and have a deficit")
 
-        observation = self.env._step(np.zeros(size) + 1)
+        observation = self.base_env._step(np.zeros(size) + 1)
         logging.info(f"1: {observation}")
         if observation.reward >= 0:
             logging.error("Error: If prices are 1 and average cost 10, we should sell and have a deficit")
 
-        observation = self.env._step(np.zeros(size) + 1000)
+        observation = self.base_env._step(np.zeros(size) + 1000)
         logging.info(f"1000: {observation}")
         if observation.reward > usualReward:
-            logging.error("Error: An unusual price such as 1000 shouldn't cause a best result than the usual price. Error ratio: ", observation.reward / usualReward)
+            logging.error(f"Error: An unusual price such as 1000 shouldn't cause a best result than the usual price. Error ratio: {observation.reward / usualReward}")
         #endregion
-    
-    def testValidate(self):
-        utils.validate_py_environment(self.env, episodes=5)
     """
+    
+    def testBaseEnvValidate(self):
+        utils.validate_py_environment(self.base_env, episodes=5)
     
     #region Agent initialization methods
 
@@ -469,12 +314,12 @@ class test(unittest.TestCase):
 
     #endregion
     
-    """
+    
     def testAll(self):
         #region Hyperparameters from the example of the documentation
         # use "num_iterations = 1e6" for better results,
         # 1e5 is just so this doesn't take too long. 
-        self.num_iterations = 10000
+        self.num_iterations = 1000
         self.log_interval = self.num_iterations / 5
         self.eval_interval = self.num_iterations / 5
         self.num_eval_episodes = 100
@@ -572,7 +417,7 @@ class test(unittest.TestCase):
         except Exception as e:
             logging.error(e)
     
-    """
+    
     def testReadDumpedData(self):
         logging.info("Opening file")
         with open('result.dump', 'rb') as file:
