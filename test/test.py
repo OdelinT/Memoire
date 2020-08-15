@@ -520,9 +520,9 @@ class test(unittest.TestCase):
         #region Hyperparameters from the example of the documentation
         # use "num_iterations = 1e6" for better results,
         # 1e5 is just so this doesn't take too long. 
-        self.num_iterations = 10000
-        self.log_interval = self.num_iterations / 5
-        self.eval_interval = self.num_iterations / 5
+        self.num_iterations = 1000
+        self.log_interval = self.num_iterations +1
+        self.eval_interval = self.num_iterations / +1 
         self.num_eval_episodes = 100
 
         self.collect_steps_per_iteration = 10
@@ -548,14 +548,14 @@ class test(unittest.TestCase):
 
         for env in [
             {
-                "train" : self.base_train_env, 
-                "eval" : self.base_eval_env, 
-                "name": "Environment that don't allow to sell at lost"
-            }, {
                 "train" : self.AllowDeficit_train_env, 
                 "eval" : self.AllowDeficit_eval_env, 
                 "name": "Environment that allows to sell at lost"
-            }
+            },{
+                "train" : self.base_train_env, 
+                "eval" : self.base_eval_env, 
+                "name": "Environment that don't allow to sell at lost"
+            } 
         ]:
             logging.info('----------------------------------')
             logging.info(f'Starting to test {env["name"]}')

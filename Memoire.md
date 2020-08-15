@@ -346,6 +346,8 @@ Cependant, ce genre d'approche peut empêcher l'agent d'être optimal dans certa
 
 - Un produit d'appel peut être vendu à perte afin de permettre de vendre plus au final (essence à la station-service d'un hypermarché, par exemple)
 
+- Spéculation (il faut parfois accepter de vendre avec un déficit pour pouvoir réinvestir sur un produit qui offre de meilleures perspectives)
+
 Pour le cas d'un produit d'appel, nous ne verrons pas ici de mesure du manque à gagner possible, car celui-ci ne peut dépendre que de cas réels très spécifiques.
 
 Le cas de la péremption comprend beaucoup de paramètres, et en établir une simulation réaliste risque d'être trop complexe. On fera donc ici une approximation de la possible différence de résulat entre un agent pouvant vendre à perte et un autre qui ne le peut pas.
@@ -408,8 +410,31 @@ Voilà un tableau des résultats obtenus après au fur et à mesure d'un apprent
 
 Bien que les résultats peuvent changer aléatoirement lors de l'exécution de l'algorithme SAC, on observe en général plus rapidement de bien meilleurs résultats sur un environnement où l'agent ne vendra pas à perte.
 
+En mesurant l'efficacité des l'agents lors de 100 tests à la fin de 1 000 étapes d'apprentissage, on obtient le tableau suivant :
+
+|         | Résultats en cas de vente à perte autorisée | Résultats en cas de vente à perte interdite | Comparaison en pourcentage |
+|---------|--------|--------|------|
+|         |  7 400 |  1 380 |  56% |
+|         |  2 519 |  8 485 | 337% |
+|         |  8 901 | 16 389 | 184% |
+|         |  2 175 |  2 676 | 123% |
+|         |  5 767 |  3 754 |  65% |
+|         |  8 797 | 13 232 | 150% |
+|         |  8 815 |  4 335 |  49% |
+|         |  9 207 | 14 685 | 159% |
+|         |  3 811 | 10 903 | 286% |
+|         | 11 554 |  8 848 |  77% |
+|---------|--------|--------|------|
+| Moyenne |  6 895 |  8 469 | 145% |
+
+Sur 1 000 étapes d'apprentissage, en moyenne, chacun des résultats sans vente à perte est 45% plus élevé qu'avec la possibilité de vendre a perte.
+
+La moyenne des 10 résultats est plus élevée de 23% lorsque l'environnement ne peux pas vendre à perte. (8469/6895 ~= 123%)
+
 
 ### Inconvénients du sur-paramétrage en terme de résultat
+
+Si dans la partie précédente, nous avons vu que dans notre environnement fictif il est néfaste de pouvoir vendre à perte, cela peut être utile voire nécessaire dans le monde réel.
 
 __Si on suppose qu'un produit périmé à un prix supérieur ou égal à son coût ne se vendra pas__ (hypothèse coûteuse en soi) :
 
