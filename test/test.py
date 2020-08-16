@@ -4,6 +4,8 @@ from environment.AllowDeficitCostPyEnv import AllowDeficitCostPyEnv
 from environment.BetterObservationsPyEnv import BetterObservationsPyEnv
 from environment.ChangingPyEnv import ChangingPyEnv
 from environment.ChangedPyEnv import ChangedPyEnv
+from environment.BetterAtFirstEnv import BetterAtFirstEnv
+from environment.UselessVariablesEnv import UselessVariablesEnv
 
 import unittest
 import copy
@@ -21,7 +23,7 @@ from tf_agents.environments import tf_py_environment
 from tf_agents.eval import metric_utils
 from tf_agents.metrics import tf_metrics
 from tf_agents.replay_buffers import tf_uniform_replay_buffer
-from tf_agents.trajectories import trajectory
+from tf_agents.trajectories import trajectory, policy_step
 from tf_agents.utils import common
 from tf_agents.policies import greedy_policy
 from tf_agents.policies import random_tf_policy
@@ -78,6 +80,20 @@ class test(unittest.TestCase):
         self.Changed_tf_env = tf_py_environment.TFPyEnvironment(self.Changed_env)
         self.Changed_train_env = tf_py_environment.TFPyEnvironment(self.Changed_env2)
         self.Changed_eval_env = tf_py_environment.TFPyEnvironment(self.Changed_env3)
+
+        self.BetterAtFirst_env = BetterAtFirstEnv()
+        self.BetterAtFirst_env2 = BetterAtFirstEnv()
+        self.BetterAtFirst_env3 = BetterAtFirstEnv()
+        self.BetterAtFirst_tf_env = tf_py_environment.TFPyEnvironment(self.BetterAtFirst_env)
+        self.BetterAtFirst_train_env = tf_py_environment.TFPyEnvironment(self.BetterAtFirst_env2)
+        self.BetterAtFirst_eval_env = tf_py_environment.TFPyEnvironment(self.BetterAtFirst_env3)
+
+        self.UselessVariables_env = UselessVariablesEnv()
+        self.UselessVariables_env2 = UselessVariablesEnv()
+        self.UselessVariables_env3 = UselessVariablesEnv()
+        self.UselessVariables_tf_env = tf_py_environment.TFPyEnvironment(self.UselessVariables_env)
+        self.UselessVariables_train_env = tf_py_environment.TFPyEnvironment(self.UselessVariables_env2)
+        self.UselessVariables_eval_env = tf_py_environment.TFPyEnvironment(self.UselessVariables_env3)
     
     def testBaseEnvParametersActionInMoney(self):
         self.base_env._reset()
@@ -984,6 +1000,78 @@ class test(unittest.TestCase):
             logging.info(results)
        
     
+    def testCompareBetterAtFirstEnvTenTimesOnSmallerIterations(self):
+    
+        #region Hyperparameters from the example of the documentation
+        # use "num_iterations = 1e6" for better results,
+        # 1e5 is just so this doesn't take too long. 
+        self.num_iterations = 100
+        self.log_interval = self.num_iterations +1
+        self.eval_interval = self.num_iterations +1 
+        self.num_eval_episodes = 10
+
+        self.collect_steps_per_iteration = 10
+        self.initial_collect_steps = self.collect_steps_per_iteration
+        self.replay_buffer_capacity = self.num_iterations
+
+        self.batch_size = 256 
+
+        self.learning_rate = 3e-3
+        self.critic_learning_rate = self.learning_rate
+        self.actor_learning_rate = self.learning_rate
+        self.alpha_learning_rate = self.learning_rate
+        self.target_update_tau = 0.05 
+        self.target_update_period = 1 
+        self.gamma = 0.99 
+        self.reward_scale_factor = 1.0 
+        self.gradient_clipping = None # @param
+
+        self.fc_layer_params = (256, 256)
+        self.actor_fc_layer_params = self.fc_layer_params
+        self.critic_joint_fc_layer_params = self.fc_layer_params
+        #endregion
+
+        for env in [
+            {
+                "train" : self.BetterAtFirst_train_env, 
+                "eval" : self.BetterAtFirst_eval_env, 
+                "name": "Environment that is improving at first by itself"
+            },{
+                "train" : self.UselessVariables_train_env, 
+                "eval" : self.UselessVariables_eval_env, 
+                "name": "Base environment with useless variables to have the same dimensions"
+            }
+        ]:
+            results = []
+            for _ in range(10):
+                logging.info('----------------------------------')
+                logging.info(f'Starting to test {env["name"]}')
+                logging.info('----------------------------------')
+                tf_agent = self.SAC()
+                
+                collect_policy = tf_agent.collect_policy
+                random_policy  = random_tf_policy.RandomTFPolicy(
+                    env["train"].time_step_spec(),
+                    env["train"].action_spec())
+                replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
+                    data_spec=tf_agent.collect_data_spec,
+                    batch_size=env["train"].batch_size,
+                    max_length=self.replay_buffer_capacity)
+                
+                #region Agent training
+                logging.info(f'Starting agent training over {self.num_iterations} steps')
+                self.train3(tf_agent=tf_agent, collect_policy=collect_policy, replay_buffer=replay_buffer, initial_collect_steps=self.initial_collect_steps, num_iterations=self.num_iterations, num_eval_episodes=self.num_eval_episodes, eval_interval=self.eval_interval, log_interval=self.log_interval, train_env=env["train"], eval_env=env["eval"])
+                logging.info('Agent training finished')
+                #endregion
+
+                #region Agent training results
+                greedy = greedy_policy.GreedyPolicy(tf_agent.policy)
+                logging.info('Test agent result')
+                results.append(self.compute_avg_return(self.base_eval_env, greedy, self.num_eval_episodes, display=False))
+                #endregion
+            logging.info(results)
+       
+    
     def testReadDumpedData(self):
         logging.info("Opening file")
         with open('result.dump', 'rb') as file:
@@ -1018,8 +1106,6 @@ class test(unittest.TestCase):
             logging.info("reward")
             logging.info(data.reward.numpy()[0][9000 + i])
     
-    def testRaiseExcept(selfl):
-        raise("Exemple d'exception levée")
     #region common methods for all agents
     # https://github.com/tensorflow/agents/blob/master/docs/tutorials/7_SAC_minitaur_tutorial.ipynb
     # DynamicStepDriver doesn't stop. Try with cuda ?
@@ -1143,7 +1229,10 @@ class test(unittest.TestCase):
             # Collect a few steps using collect_policy and save to the replay buffer.
             #for _ in range(collect_steps_per_iteration):
             for _ in range(2):
-                self.collect_step(train_env, collect_policy, replay_buffer, i)
+                if train_env == self.BetterAtFirst_train_env and eval_env == self.BetterAtFirst_eval_env:
+                    self.collect_step(train_env, collect_policy, replay_buffer, i)
+                else:
+                    self.collect_step(train_env, collect_policy, replay_buffer)
                 # Sample a batch of data from the buffer and update the agent's network.
                 experience, unused_info = next(iterator)
                 
@@ -1251,7 +1340,12 @@ class test(unittest.TestCase):
     # From https://github.com/tensorflow/agents/blob/master/docs/tutorials/1_dqn_tutorial.ipynb
     def collect_step(self, environment, policy, buffer, loop_number = None):
         time_step = environment.current_time_step()
-        action_step = policy.action(time_step)
+        action_step = policy.action(time_step)        
+        if loop_number is not None and loop_number < 10:
+            action_step = policy_step.PolicyStep(
+                action=tf.convert_to_tensor([np.stack((action_step.action[0][0], np.zeros((10), dtype=np.float32) + 1000 * loop_number))]), 
+                state=(), 
+                info=())
         next_time_step = environment.step(action_step.action)
         traj = trajectory.from_transition(time_step, action_step, next_time_step)
 

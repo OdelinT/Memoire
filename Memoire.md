@@ -24,9 +24,9 @@ On peut donc imaginer ajouter d'une randomisation au sein d'un algorithme d'appr
 
 Effet cigogne : confusion entre corrélation et causalité
 
-Corrélation : lien mesurable statistiquement entre deux variables
+Corrélation : lien mesurable statistiquement entre deux variables.
 
-Causalité : Lien de cause à effet entre deux phénomènes
+Causalité : lien de cause à effet entre deux phénomènes.
 
 __Définitions issues principalement du Journal officiel n° 0285 du 09/12/2018 :__
 
@@ -48,6 +48,10 @@ Machine learning dans le corpus anglophone :
 Apprentissage par renforcement : "Apprentissage automatique dans lequel un programme extérieur évalue positivement ou négative-ment les résultats successifs de l’algorithme, l’accumulation des résultats permettant à l’algorithme d’améliorer ses performances jusqu’à ce qu’il atteigne un objectif préalablement fixé."
 
 Agent : algorithme d'apprentissage par renforcement.
+
+Rasoir d'Ockham : aussi appelé principe de parcimonie, est un principe de raisonnement consistant à préférer le modèle auto-suffisant le plus simple pour expliquer un phénomène. On le trouve souvant sous cet énoncé : "les hypothèses suffisantes les plus simples doivent être préférées".
+
+Biais du rasoir d'Ockham : privilégier les modèles les plus simples peut éliminer une explication qui est tout aussi vraie.
 
 ## Problématique
 
@@ -431,27 +435,27 @@ Quels paramètres pour modifier le taux d'apprentissage et le poids des variable
 
 Les différents paramètres évolueront dans des sens différents (favorables ou défavorables au résultat), afin d'une part de ne pas trop complexifier les comparaisons, et d'autre part pour qu'exploiter les environnements évolués nécessite des "tactiques" différentes de l'environnement initial.
 
-### d) Inciter au biais de confirmation
+Nuance avec l'expérience précédente : contrairement à l'expérience précédente, qui consistait à comparer des résultats issus d'observations complètes de résultats issus d'observations partielles, il s'agit ici de comparer les résultats avec ou sans changement des paramètres qui ne font pas partie des observations.
 
-En utilisant le biais du razoir d'Ockham (privilégier les modèles les plus simples peut conduire à oublier une variable) mentionné dans cette publication :
-
-- https://arxiv.org/pdf/cmp-lg/9612001.pdf
-
-- créer un biais du razoir : 
-
- - Créer deux variables corrélées, l'une expliquant beaucoup les observations, l'autre moins, pour que l'agent se concentre sur la première
- 
- - Inverser l'importance de ces variables au fil du temps
-
-- Comparer les résultats avec des tests directement sur la seconde variable
-
-### e) Créer une causalité illusoire et observer l'inertie de l'agent
+### d) Créer une causalité illusoire et observer l'inertie de l'agent
 
 Pour cela, on peut forcer arbitrairement les actions de l'agent dans un premier temps à aller dans une certaine direction.
 
 L'environnement sera paramétré pour retourner de meilleurs résultats au début des tests. Cela créera une corrélation sans causalité entre la direction des variables et le résultat.
 
 En mesurant l'inertie de l'agent pour rétablir ses variables vers quelque chose qui cause effectivement le résultat, on devrait déterminer dans quelle mesure celui-ci confond corrélation et causalité.
+
+### e) Inciter au biais du rasoir d'Ockham
+
+On devrait pouvoir inciter un agent à mettre en évidence un biais du rasoir d'Ockham (https://arxiv.org/pdf/cmp-lg/9612001.pdf)
+
+Pour créer la situation :
+
+- Créer deux variables corrélées, l'une expliquant beaucoup les observations, l'autre moins, pour que l'agent se concentre sur la première
+
+- Inverser l'importance de ces variables au fil du temps
+
+Il devrait ensuite suffir de comparer les résultats avec des tests directement sur la valeur finale de la variable, tout comme dans l'expérience C.
 
 # III- Analyse des résultats
 
@@ -646,15 +650,22 @@ np.random.seed(seed)
 | 1 291 | 0 |
 | 3 304 | 0 |
 
-Ces résultats montrent que bien que l'environnement soit viable, le fait d'apprendre sur un environnement dont les paramètres évoluent au fil du temps est bien plus complexe. En effet, un agent basé sur l'algorithme SAC obtient de meilleurs résultats (en politique d'exploration) avant d'avoir appris qu'après (en politique cupide comme en politique d'exploration).
+Ces résultats montrent que bien que l'environnement soit viable, le fait d'apprendre sur un environnement dont les paramètres évoluent au fil du temps est bien plus complexe. En effet, un agent basé sur l'algorithme SAC obtient de meilleurs résultats (en politique d'exploration) avant d'avoir appris qu'après (en politique cupide comme en politique d'exploration). Cela signifie explicitement que l'agent est capable d'obtenir des résultats lorsqu'il apprend, mais pas lorsqu'il cherche à maximiser son résultat à partir de ce qu'il a appris.
 
 
 ### Ralentir l'évolution et remesurer ?
 
 
-## D- Inciter au biais de confirmation
 
-## E- Inertie face à une corrélation illusoire
+
+
+## D- Inertie face à une corrélation temporaire
+
+L'expérience n'a pu avoir lieu pour les mêmes raisons que l'expérience de l'ajout d'une variable importante invisible qui évolue : l'interruption de l'exécution des tests sans levée d'exception ni affichage de message d'erreur.
+
+## E- Biais du rasoir d'Ockham
+
+Toutes les expérimentations qui ont nécessité des observations ou des actions à plus d'une dimension avec l'algorithme SAC s'interrompent sans explication. Pour cette raison, nous n'allons malheureusement pas investir de temps sur cette expérience.
 
 # Conclusion
 
