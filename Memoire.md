@@ -8,7 +8,7 @@
 
 Tout vient d'une réflexion sur la différence entre corrélation et causalité. 
 Puisqu'une grande part de la cognition humaine est basée sur la notion de causalité, tandis que les algorithmes sont basées sur des corrélations, c'est une question récurrente sur les questions d'intelligence artificielle. 
-Ce problème est parfois posé comme un des frein majeur au développemet de ces dernières (https://www.nature.com/articles/s41599-020-0494-4?source=techstories.org#Sec5).
+Ce problème est parfois posé comme un des frein majeur au développement de ces dernières (https://www.nature.com/articles/s41599-020-0494-4?source=techstories.org#Sec5).
 
 Les productions humaines qui s'appuient sur l'apprentissage automatique peuvent également subir ce biais, ne serait-ce que parce que le biais vient des données en entrées, et ce, malgré une validation croisée.
 
@@ -18,7 +18,7 @@ Dans le monde réel, une méthode souvent appliquée est la randomisation : coup
 
 Est-ce applicable à l'apprentissage automatique ?
 
-Il faut pour cela que l'algorithme puisse agir sur son environnement pour apprnedre non seulement à partir de données initiales, mais aussi à partir du résultat de ses actions.
+Il faut pour cela que l'algorithme puisse agir sur son environnement pour apprendre non seulement à partir de données initiales, mais aussi à partir du résultat de ses actions.
 Il s'agit justement de la définition de l'apprentissage par renforcement, un des types d'apprentissage automatique.
 
 L'apprentissage par renforcement, en agissant sur son environnement, est-il capable de différencier une corrélation d'une causalité ?
@@ -50,7 +50,7 @@ Apprentissage automatique dans le corpus francophone :
 Machine learning dans le corpus anglophone :
 ![Fréquences de "machine learning" en anglais](images/frequences_ml_en.PNG)
 
-Apprentissage par renforcement : "Apprentissage automatique dans lequel un programme extérieur évalue positivement ou négative-ment les résultats successifs de l’algorithme, l’accumulation des résultats permettant à l’algorithme d’améliorer ses performances jusqu’à ce qu’il atteigne un objectif préalablement fixé."
+Apprentissage par renforcement : "Apprentissage automatique dans lequel un programme extérieur évalue positivement ou négativement les résultats successifs de l’algorithme, l’accumulation des résultats permettant à l’algorithme d’améliorer ses performances jusqu’à ce qu’il atteigne un objectif préalablement fixé."
 
 Agent : algorithme d'apprentissage par renforcement.
 
@@ -83,7 +83,7 @@ Sachant que A est corrélé à B, il y a plusieurs explications possibles :
 
 - Coincidence
 
-Si on ne peut observer C, peut-on différencier le cas 5 du cas 6 ? Peut-on estimer que nos données semblent répondre à une variable supplémentaire inconnue à partir d'une certaine quantité de données permettant d'écarter l'idée d'une coincidence ? Si oui, peut-on mesurer cette variable ? (sachant qu'on risque de la confondre avec le vrai bruit statistique)
+Si on ne peut observer C, peut-on différencier le cas 5 du cas 6 ? Peut-on estimer que nos données semblent répondre à une variable supplémentaire inconnue à partir d'une certaine quantité de données permettant d'écarter l'idée d'une coïncidence ? Si oui, peut-on mesurer cette variable ? (sachant qu'on risque de la confondre avec le vrai bruit statistique)
 
 
 #### b) Illustration de ces cas
@@ -100,7 +100,7 @@ Dans le cas où A, la quantité vendue, est corrélé à une variable B
 
 - La complémentarité entre la farine et la levure cause une corrélation entre les quantités vendues de l'un et de l'autre
 
-- Une variable n'ayant aucun lien de causalité avec quoi que ce soit (ex: l'horoscope des sagittaires) peut néanmoins se retrouver corrélé avec d'autres variables si on ne dispose pas d'un échantillon suffisament grand. Peut alors exister un biais de sur-apprentissage.
+- Une variable n'ayant aucun lien de causalité avec quoi que ce soit (ex: l'horoscope des sagittaires) peut néanmoins se retrouver corrélé avec d'autres variables si on ne dispose pas d'un échantillon suffisamment grand. Peut alors exister un biais de sur-apprentissage.
 
 ## Plusieurs approches
 
@@ -154,7 +154,7 @@ __--> Commun à toutes les approches__
 
  - Randomisation, n'est-elle pas en quelque sorte déjà faite par l'algo lors de l'exploration ?
 
- - Randomisation : passer de temps en temps en random policy ou en collect policy pour réduire l'intertie ?
+ - Randomisation : passer de temps en temps en random policy ou en collect policy pour réduire l'inertie ?
 __--> trop proche de l'implémentation__
 
 - Versus l'efficacité si on pré-entraine l'agent avec des données ayant déjà été observées puis qu'on le laisse se renforcer avec randomisation (apprentissage supervisé et par renforcement)
@@ -211,7 +211,7 @@ On peut d’ailleurs différencier trois types de variables qui construisent la 
 
 - Les sorties issues des actions sur l'environnement (la récompense et une partie des observations)
 
-Au sein des librairies que nous utiliseront, ces variables sont découpées de la sorte :
+Au sein des librairies que nous utiliserons, ces variables sont découpées de la sorte :
 
 - Les observations (qu'elles dépendent des actions de l'agent ou non)
 
@@ -268,7 +268,7 @@ Si 80% de sa récompense est basée sur 20% de ses actions, l'algorithme mettra 
 
 On peut maximiser ce biais :
 
-- En fournissant une récompense et/ou des observations aggrégées à une granularité trop épaisse
+- En fournissant une récompense et/ou des observations agrégées à une granularité trop épaisse
 
 - Nous arrivons alors à une coïncidence et un biais de surapprentissage
 
@@ -295,7 +295,7 @@ Testable, mais consiste surtout à mesurer l'inertie de l'algorithme à un chang
 
 ### e) Tous biais confondus
 
-Même s'ils se corrigent facilement et automatiquement dans les algos déjà existants, on peut toujours en mesurer et comparer leurs interties.
+Même s'ils se corrigent facilement et automatiquement dans les algos déjà existants, on peut toujours en mesurer et comparer leurs inerties.
 
 
 
