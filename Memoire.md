@@ -64,6 +64,7 @@ Biais (en statistiques) : différence entre la valeur de l'espérance d'un estim
 
 Dilemme biais-variance : le biais diminue à mesure que la complexité du modèle s'approche de la complexité (ni plus simple ni plus complexe) que l'environnement.
 
+Inférence causale : L'inférence causale désigne le processus par lequel on peut établir une relation de causalité entre un élément et ses effets. https://fr.wikipedia.org/wiki/Inf%C3%A9rence_causale
 
 ### Les différents cas de corrélation
 
@@ -170,9 +171,7 @@ Selon cette considération, c'est au moment où ces algorithmes sont utilisés a
 
 Cependant, il convient d'analyser ceci de façon spécifique face à différentes approches de l'apprentissage automatique.
 
-### a) Dans le cas d'une régression
-
-Dans le cas d'une régression, la question peut sembler triviale.
+### a) Réduction de biais dans l'apprentissage automatique
 
 Une grande partie des biais peuvent être réduits par une validation croisée :
 
@@ -184,16 +183,27 @@ Une grande partie des biais peuvent être réduits par une validation croisée :
 
 Une autre part des biais dépend directement de la qualité des données en entrée. Si les données sont elles-mêmes non représentatives de la situation, une validation croisée ne résoudra pas le problème.
 
+__Le cas de la causalité__
+
 Dans le cas où confusion entre corrélation et causalité il y a, ça n'est pas au niveau des algorithmes d'apprentissage automatique, qui n'étudient que les corrélations. C'est lors de l'utilisation de ces algorithmes qu'il peut y avoir confusion.
 
-Puisqu'une régression consiste à mesurer les corrélations entre toutes les variables afin d'en estimer une à partir des autres, il suffit que certaines variables soient corrélées avec la celle à estimer pour biaiser les résultats. Pour combattre ce biais, il faut qu'un être humain analyse le contexte pour déterminer s'il y a causalité entre les variables.
+Puisque les modèles consistent à mesurer les corrélations entre toutes les variables afin d'en estimer une à partir des autres, il suffit que certaines variables soient corrélées avec la celle à estimer pour biaiser les résultats. Pour combattre ce biais, il faut qu'un être humain analyse le contexte pour déterminer s'il y a causalité entre les variables.
 
-/!\ http://www.cems.uwe.ac.uk/~irjohnso/coursenotes/uqc832/tr-bias.pdf
+### b) L'inférence causale en statistiques
 
-/!\ cette étude montre que même dans le cas d'une régression il existe des méthodes permettant de diminuer ce biais
+Des approches existent et parviennent à reconnaître statiquement les corrélations les plus susceptibles d'être des causalités à partir de données "à plat" :
 
+https://www.mitpressjournals.org/doi/full/10.1162/NECO_a_00820
 
-### b) Dans le cas de l'apprentissage par renforcement
+D'après cette méta-analyse, il y a beaucoup d'approches dans beaucoup de champs de recherche, mais pas pour l'heure d'outil commun répandu entre les disciplines.
+
+https://www.nature.com/articles/s41576-018-0020-3/
+
+Résultats prometteurs en 2020
+
+https://projecteuclid.org/euclid.ba/1580461461
+
+### c) Dans le cas de l'apprentissage par renforcement
 
 Si le cas de la régression semblait trivial, c'est peut-être parce que l'algorithme n'a pas l'occasion d'interagir avec son environnement pour tester ce qui est une corrélation et ce qui est une causalité.
 
@@ -223,7 +233,7 @@ Ainsi, contrairement au cas d'une régression, il est déterminé dès le dépar
 
 On pourrait se dire que l'algorithme fera explorera l'environnement à sa disposition pour maximiser sa récompense indépendamment de toute notion de toute notion de causalité. Cependant, il reste possible d'expérimenter si et dans quelle mesure l'algorithme tombe dans des biais.
 
-### c) Exemples réels
+### d) Exemples réels de logiciels biaisés
 
 Dans le cas de l'application de sélection de CV d'Amazon qui défavorisait les profils féminins, l'erreur vient du fait qu'on ait utilisé des données biaisées (des recrutements ayant eu lieu durant 10 années). 
 
@@ -256,9 +266,11 @@ Pour lui éviter d'essayer des cas triviaux et a priori contreproductifs, on ser
 
 ### b) Coïncidence
 
-Il s'agit d'une question purement statistique. Il suffit d'avoir assez de données.
+Cas trivial mais néanmoins possible. On serait tenté de se dire qu'il s'agit là d'une question habituelle de quantité de données insuffisante. 
 
-Peut-on considérer les erreurs qui y sont dues comme un exemple de sur-apprentissage ?
+Cependant, le fait est que l'étude des petits jeux de données est un champ de recherche à part entière aussi bien en statistiques que dans l'apprentissage automatique. Il apparait que tous les algorithmes n'apprennent pas aussi bien selon les volumétries. 
+
+Dans quelle mesure les informaticiens sont-ils formés aux conditions de volumétrie des différents algorithmes et de leurs différentes implémentations ? Ces conditions sont-elles suffisamment documentées ?
 
 ### c) Données d'apprentissage non représentatives (dont Biais de sélection)
 
@@ -272,7 +284,9 @@ On peut maximiser ce biais :
 
 - Nous arrivons alors à une coïncidence et un biais de surapprentissage
 
-#### https://app.wandb.ai/stacey/aprl/reports/Adversarial-Policies-in-Multi-Agent-Settings--VmlldzoxMDEyNzE
+#### Données non représentatives : l'avantage de l'apprentissage par renforcement sur l'apprentissage supervisé
+
+https://app.wandb.ai/stacey/aprl/reports/Adversarial-Policies-in-Multi-Agent-Settings--VmlldzoxMDEyNzE
 
 Résumé du protocole de cette publication :
 
@@ -282,26 +296,25 @@ Résumé du protocole de cette publication :
 
 - Puis B apprend à jouer contre A
 
-Il en résulte que la meilleure manière pour B de gagner consiste à ne pas jouer. En effet, A n'a appris à jouer que contre des personnes qui savent jouer. B faisant des choses inattendues, A perd tout seul.
+Il en résulte que la meilleure manière pour B de gagner consiste à ne pas jouer. En effet, A n'a appris à jouer que contre des personnes qui savent jouer. B faisant des choses inattendues, A perd tout seul. L'apprentissage par renforcement gagne sur le long terme face à un programme exclusivement formé sur des données qui ne recouvrent pas assez de cas.
 
-Conclusion : l'apprentissage par renforcement gagne sur le long terme face à un programme exclusivement formé sur des données qui ne recouvrent pas assez de cas.
-
+Conclusion : l'apprentissage par renforcement a moins de difficultés face à des données partielles en entrée.
 
 ### d) Biais de confirmation
 
+Un principe de raisonnement parfois considéré comme fondamental de la philosophie des sciences peut aussi être la source de biais.
+
+Blumer, Ehrenfeucht, Haussler & Warmuth, 1987 (according to https://arxiv.org/pdf/cmp-lg/9612001.pdf)
+
+https://psycnet.apa.org/fulltext/2017-54956-007.html
+
 Les algos y sont-ils sensibles ? Causalité au début qui décroit avec le temps, mais l'algo continue dans le sens initial ?
 
-Testable, mais consiste surtout à mesurer l'inertie de l'algorithme à un changement du poids de ses variables
-
-### e) Tous biais confondus
-
-Même s'ils se corrigent facilement et automatiquement dans les algos déjà existants, on peut toujours en mesurer et comparer leurs inerties.
-
-
+Testable, mais consiste surtout à mesurer l'inertie de l'algorithme à un changement du poids de ses variables.
 
 # II- Description des expérimentations
 
-Faire interagir un agent suivant plusieurs algorithmes d'apprentissage par renforcement pour apprendre face à un environnement biaisé.
+Les experimentations ont consisté à faire interagir un agent suivant plusieurs algorithmes d'apprentissage par renforcement pour apprendre face à un environnement biaisé.
 
 Pour créer des situation biaisées, on préfèrera utiliser une librairie permettant de créer un environnement.
 
@@ -313,11 +326,9 @@ Diagramme de classes simplifié :
 
 Le code est quant à lui sur le repository suivant : https://github.com/OdelinT/Memoire
 
-(tant qu'il n'est pas public, me demander pour y accéder)
-
 ## A- L'agent
 
-### a) Les algorithmes existants
+### Les algorithmes existants
 
 Algorithmes présents dans TF :
 
@@ -333,13 +344,7 @@ Algorithmes présents dans TF :
 
 - [SAC][6]
 
-### b) Ajouter une étape de randomisation
 
-Dans tensorflow, en faisant quelques explorations en random_policy
-
-### c) Configuration et enregistrement des résultats
-
-Outils prévus à cet effet dans tensorflow : Replay buffer, et sa méthode As_dataset. Plus qu'à comprendre comment itérer dessus, car un '
 
 ## B- L'environnement
 
@@ -348,7 +353,7 @@ L'environnement répondrait, pour chaque offre, une demande (un nombre d'achats)
 
 Cas réels qui correspondraient : prix dans un centre commercial connecté, sur un site d'e-commerce, sur un marché à terme en temps réel (financier, de l'électricité, du blé), etc.
 
-Dans TF, on peut créer deux types d'environnement : py_environment.PyEnvironment ou tf_environment.TFEnvironment. Les deux prennent en compte des paramètres similaires. Dans notre exemples :
+Dans TF, on peut créer deux types d'environnement : py_environment.PyEnvironment ou tf_environment.TFEnvironment. Les deux prennent en compte des paramètres similaires. Dans notre exemple :
 
 - Le temps est linéaire et discret
 
@@ -362,19 +367,19 @@ Dans TF, on peut créer deux types d'environnement : py_environment.PyEnvironmen
 
 La classe de l'environnement basique sera dupliquée en plusieurs versions, chacune ayant pour but de tester un biais ou une situation spécifique.
 
-La graine des paramètres aléatoires sera la même dans tous les environnements, et on créera un test unitaire pour vérifier que les paramètres générés dans les différents environnements seront bien identiques. Cela permettra d'écarter la possibilité que certains environnement soient, au moment de l'exécution des tests, plus favorables que les autres.
+La graine des paramètres aléatoires sera la même dans tous les environnements, et on créera un test unitaire pour vérifier que les paramètres générés dans les différents environnements seront bien identiques. Cela permettra d'écarter la possibilité que certains environnements soient, au moment de l'exécution des tests, plus favorables que les autres.
 
 On pourrait utiliser un système d'héritage, mais les classes sont assez courtes et les paramètres à faire évoluer ne sont présents que dans deux méthodes à redéfinir. Il est donc bien plus simple et lisible de dupliquer les classes sans lien d'héritage entre elles.
 
 ### a) Trop paramétrer l'environnement
 
-Comme mentionné plus tôt, on peut être tenté de contraindre notre agent dans ses actions lui éviter d'essayer des action qui nous paraissent contreproductives.
+Comme mentionné plus tôt, on peut être tenté de contraindre notre agent dans ses actions et lui éviter d'essayer des actions qui nous paraissent contreproductives.
 
 > https://arxiv.org/pdf/1907.02908.pdf
 
-Dans notre cas, on peut en effet afin d'obtenir des résultats plus rapidement interdire à notre environnement de vendre à un prix inférieur à son coût unitaire.
+Dans notre cas, et afin d’obtenir des résultats plus rapidement, on peut en effet afin d'obtenir des résultats plus rapidement interdire à notre environnement de vendre à un prix inférieur à son coût unitaire.
 
-Ici, l'action correspond au prix auquel on vend un produit, exprimé en un coeficient multiplicateur du coût unitaire de ce produit.
+Ici, l'action correspond au prix auquel on vend un produit, exprimé en un coefficient multiplicateur du coût unitaire de ce produit.
 
 ~~~ Python
 self._action_spec = array_spec.BoundedArraySpec(
@@ -406,13 +411,13 @@ Un paramètre inconnu est créé, et influence les résultats. Ensuite, on modif
 
 Exemples de variables invisibles :
 
-- La taille des magasins. L'expérience était sur les carrefour city, elle inclut par la suite également les carrefour market, d'une taille en moyenne différente. Toutes les quantités varient.
+- La taille des magasins. Si on imagine que l'expérience était sur les magasins carrefour city et qu'elle inclut par la suite également les carrefour market, d'une taille en moyenne différente. Toutes les quantités varient.
 
 - La flexibilité de la demande selon le prix. On peut imaginer qu'au fil du temps ce paramètre influe plus ou moins les décisions d'achat.
 
-- Dans l'environnement de base, on a pour seule observation la quantité vendue. Le fait que les actions soient le prix de vente de chaque produit exprimé en un coefficient multiplicateur du coût, et la récompense la marge sur coût variables, rendent extrêmement difficile de déterminer l'importance relative de chaque produit dans le résultat final.
+- Dans l'environnement de base, on a pour seule observation la quantité vendue. Le fait que les actions soient le prix de vente de chaque produit exprimé en un coefficient multiplicateur du coût, et la récompense la marge sur coûts variables, rendent extrêmement difficile de déterminer l'importance relative de chaque produit dans le résultat final.
 
-On testera donc en ajoutant toutes ces paramètres dans les observations fournies par notre environnement à notre agent.
+On testera donc en ajoutant tous ces paramètres dans les observations fournies par notre environnement à notre agent.
 
 Par la suite, on fera évoluer ces paramètres, et on mesurera l'inertie des agents.
 
@@ -446,7 +451,7 @@ L'environnement est valide (conforme à ses spécifications, et qu'il fonctionne
 utils.validate_py_environment(self.BetterObservations_env, episodes=5)
 ~~~
 
-__Mais les actions suggérées par l'algorithme SAC ont sont conformes aux spécifications des observations et non des actions.__ Ce problème n'apparaît que maintenant étant donné que jusqu'à présent ces spécifications étaient les mêmes.
+__Mais les actions suggérées par l'algorithme SAC sont sont conformes aux spécifications des observations et non des actions.__ Ce problème n'apparaît que maintenant étant donné que jusqu'à présent ces spécifications étaient les mêmes.
 
 __Solutions possibles :__
 
@@ -514,7 +519,7 @@ Voilà un tableau des résultats obtenus après au fur et à mesure d'un apprent
 |  8000  |   4 112 |  18 320 |
 | 10000  |   8 165 |  20 326 |
 
-Bien que les résultats peuvent changer aléatoirement lors de l'exécution de l'algorithme SAC, on observe en général plus rapidement de bien meilleurs résultats sur un environnement où l'agent ne vendra pas à perte.
+Bien que les résultats puissent changer aléatoirement lors de l'exécution de l'algorithme SAC, on observe en général plus rapidement de bien meilleurs résultats sur un environnement où l'agent ne vendra pas à perte.
 
 En mesurant l'efficacité des l'agents lors de 100 tests à la fin de 1 000 étapes d'apprentissage, on obtient le tableau suivant :
 
@@ -531,14 +536,14 @@ En mesurant l'efficacité des l'agents lors de 100 tests à la fin de 1 000 éta
 |         |  3 811 | 10 903 |
 |         | 11 554 |  8 848 |
 
-Pour rappel, les environnements ont des paramètres identiques. En effet, la même graine est utilisée pour la génération des nombres aléatoires, et nous disposons d'un test unitaire qui vérifie que ce soit bien le cas. Ainsi, __les données peuvent être interverties en colonne_, faire la en ligne n'a donc pas de sens.
+Pour rappel, les environnements ont des paramètres identiques. En effet, la même graine est utilisée pour la génération des nombres aléatoires, et nous disposons d'un test unitaire qui vérifie que ce soit bien le cas. Ainsi, __les données peuvent être interverties en colonne__, faire la moyenne en ligne n'a donc pas de sens.
 
 On peut observer que la moyenne des 10 résultats est plus élevée de 23% lorsque l'environnement ne peux pas vendre à perte (8 469) que lorsqu'il le peut (6 895).
 
 
 ### Inconvénients du sur-paramétrage en terme de résultat
 
-Si dans la partie précédente, nous avons vu que dans notre environnement fictif il est néfaste de pouvoir vendre à perte, cela peut être utile voire nécessaire dans le monde réel.
+Si, dans la partie précédente, nous avons vu que dans notre environnement fictif, il est néfaste de pouvoir vendre à perte, cela peut être utile voire nécessaire dans le monde réel.
 
 __Si on suppose qu'un produit périmé à un prix supérieur ou égal à son coût ne se vendra pas__ (hypothèse coûteuse en soi) :
 
@@ -550,7 +555,7 @@ Le taux de marge de la distribution alimentaire, très soumise aux questions de 
 
 > https://www.insee.fr/fr/statistiques/:~:text=Pour%20les%20produits%20alimentaires,%20les,de%20produits%20%C3%A0%20l'autre.
 
-Les pertes représentent 3,3% du poid des denrées alimentaires transitant par la distribution (on supposera le même ordre de grandeur en valeur) 
+Les pertes représentent 3,3% du poids des denrées alimentaires transitant par la distribution (on supposera le même ordre de grandeur en valeur) 
 
 > https://www.ademe.fr/sites/default/files/assets/documents/pertes-gaspillages-alimentaires-etat-lieux-201605-synt.pdf page 8
 
@@ -560,13 +565,13 @@ Soit un manque à gagner de 3,3% * 70% * 120% ~= 2,8% de ses coûts, soit (2,8 /
 
 > https://bfmbusiness.bfmtv.com/entreprise/carrefour-a-renoue-avec-les-benefices-en-2019-apres-deux-annees-dans-le-rouge-1865256.html#:~:text=Quant%20%C3%A0%20la%20marge%20op%C3%A9rationnelle,r%C3%A9sultat%20net%20part%20du%20groupe).
 
-En conclusion, dans une situation où les produits vendus peuvent périmer, et où ceux-ci sont à faible valeur ajoutée, il est théoriquement possible qu'un agent chargé gérer les prix avec interdiction de vendre à perte aie de moins bons résultats qu'un autre. Cette différence pourrait être d'un ordre de grandeur comparable à celui de la marge opérationnelle de celui qui a le droit de vendre à perte.
+En conclusion, dans une situation où les produits vendus peuvent périmer, et où ceux-ci sont à faible valeur ajoutée, il est théoriquement possible qu'un agent chargé de gérer les prix avec interdiction de vendre à perte ait de moins bons résultats qu'un autre. Cette différence pourrait être d'un ordre de grandeur comparable à celui de la marge opérationnelle de celui qui a le droit de vendre à perte.
 
 ## B- Variable importante invisible
 
 Les difficultés d'implémentations ne se sont finalement pas arrêtées là. 
 
-En effet, l'exécution des expériences s'interrompt purement et simplement sans levée d'exception ni message d'erreur, et stoppe même  le module de test unitaires censé gérer ces comportements.
+En effet, l'exécution des expériences s'interrompt purement et simplement sans levée d'exception ni message d'erreur, et stoppe même  le module de tests unitaires censé gérer ces comportements.
 
 Ce qui se produit :
 
@@ -628,7 +633,7 @@ Moyenne de 6 624 dans le premier cas, 0 dans le deuxième, 4 826 dans le troisi�
 
 ### Deuxième analyse
 
-Les résultats pourraient être interprétés tels quel : faire évoluer les paramètres, même progressivement, donne de moins bons résultats que de garder des paramètres constants.
+Les résultats pourraient être interprétés tels quels : faire évoluer les paramètres, même progressivement, donne de moins bons résultats que de garder des paramètres constants.
 
 __Cependant__, il est très surprenant de n'obtenir __aucun__ résultat sur l'environnement qui évolue au cours du temps après 1 000 épisodes.
 
@@ -694,9 +699,6 @@ Ces résultats montrent que bien que l'environnement soit viable, le fait d'appr
 
 
 ### Ralentir l'évolution et remesurer ?
-
-
-
 
 
 ## D- Inertie face à une corrélation temporaire
