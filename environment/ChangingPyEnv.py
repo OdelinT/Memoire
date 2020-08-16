@@ -52,6 +52,10 @@ class ChangingPyEnv(py_environment.PyEnvironment):
         
         self._observation_spec = array_spec.ArraySpec(
             shape = (self.size,),dtype=np.float32,name = 'observation')
+
+        self.seeds = []
+        for i in range(self.duration):
+            self.seeds.append(i)
         
         self._state = 0
         self._episode_ended = False
@@ -65,10 +69,14 @@ class ChangingPyEnv(py_environment.PyEnvironment):
     def _reset(self):
         self._state = 0
         self._episode_ended = False
-        #self.__init__()
+        self.__init__()
         return ts.restart(self.initial_observation)
     
     def _step(self, action):
+        seed = self.seeds[self._state % self.duration]
+        random.seed(seed)
+        np.random.seed(seed)
+
         prices = self.productsCosts * action
         observation = np.round((self.placeSize  * self.productsUsualBuyingRates) * (self.productsPriceFlexibility ** ((self.productsUsualPrices - prices) / self.productsUsualPrices)))
 

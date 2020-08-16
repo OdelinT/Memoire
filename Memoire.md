@@ -255,7 +255,7 @@ Même s'ils se corrigent facilement et automatiquement dans les algos déjà exi
 
 
 
-# II- Expérimentation
+# II- Description des expérimentations
 
 Faire interagir un agent suivant plusieurs algorithmes d'apprentissage par renforcement pour apprendre face à un environnement biaisé.
 
@@ -445,7 +445,13 @@ En utilisant le biais du razoir d'Ockham (privilégier les modèles les plus sim
 
 - Comparer les résultats avec des tests directement sur la seconde variable
 
+### e) Créer une causalité illusoire et observer l'inertie de l'agent
 
+Pour cela, on peut forcer arbitrairement les actions de l'agent dans un premier temps à aller dans une certaine direction.
+
+L'environnement sera paramétré pour retourner de meilleurs résultats au début des tests. Cela créera une corrélation sans causalité entre la direction des variables et le résultat.
+
+En mesurant l'inertie de l'agent pour rétablir ses variables vers quelque chose qui cause effectivement le résultat, on devrait déterminer dans quelle mesure celui-ci confond corrélation et causalité.
 
 # III- Analyse des résultats
 
@@ -480,12 +486,10 @@ En mesurant l'efficacité des l'agents lors de 100 tests à la fin de 1 000 éta
 |         |  9 207 | 14 685 |
 |         |  3 811 | 10 903 |
 |         | 11 554 |  8 848 |
-|---------|--------|--------|
-| Moyenne |  6 895 |  8 469 |
 
 Pour rappel, les environnements ont des paramètres identiques. En effet, la même graine est utilisée pour la génération des nombres aléatoires, et nous disposons d'un test unitaire qui vérifie que ce soit bien le cas. Ainsi, __les données peuvent être interverties en colonne_, faire la en ligne n'a donc pas de sens.
 
-On peut observer que la moyenne des 10 résultats est plus élevée de 23% lorsque l'environnement ne peux pas vendre à perte. (8469/6895 ~= 123%)
+On peut observer que la moyenne des 10 résultats est plus élevée de 23% lorsque l'environnement ne peux pas vendre à perte (8 469) que lorsqu'il le peut (6 895).
 
 
 ### Inconvénients du sur-paramétrage en terme de résultat
@@ -553,9 +557,15 @@ Résultat sur 10 tests d'apprentissage sur 1 000 étapes :
 |  4 376  |  0  |  0  |
 |  8 633  |  0  |  0  |
 
-C'est réussi, la colonne du milieu a des données au milieu entre les 3 !
+### Première analyse
 
-Les paramètres devaient ne pas être viables. Quickfix & on recommence.
+C'est réussi, la colonne du milieu a des données au milieu comprises entre les deux autres !
+
+Autre explication : les paramètres devaient ne pas être viables.
+
+### Résolution et nouveaux tests 
+
+Après modification de l'évolution des paramètres pour qu'ils restent plus viables :
 
 | Environnement statique | Environnement qui évolue au fil du temps | Environnement qui suit une évolution comparable à l'initialisation puis qui devient statique |
 | ----------- | ----------- | ----------- |
@@ -570,14 +580,81 @@ Les paramètres devaient ne pas être viables. Quickfix & on recommence.
 |   3 325  |  0  |  2 715  |
 |   4 463  |  0  | 14 475  |
 
-### Première analyse
+Moyenne de 6 624 dans le premier cas, 0 dans le deuxième, 4 826 dans le troisième.
 
-Les résultats semblent clairs : faire évoluer les paramètres, même progressivement, donne de moins bons résultats que de garder des paramètres constants.
+### Deuxième analyse
+
+Les résultats pourraient être interprétés tels quel : faire évoluer les paramètres, même progressivement, donne de moins bons résultats que de garder des paramètres constants.
+
+__Cependant__, il est très surprenant de n'obtenir __aucun__ résultat sur l'environnement qui évolue au cours du temps après 1 000 épisodes.
+
+Hypothèse : si les variables de l'environnement n'étaient pas réinitialisées entre chaque épisode, et que les évolutions tendent à rendre l'environnement moins viable (ce qui est probable au regard des résultats obtenus en moyenne 37% plus faibles), il n'est pas surprenant qu'au bout de 1000 épisodes * 30 étapes = 30 000 modifications, il devienne extrêmement difficile d'obtenir un gain.
+
+### Vérification de cette hypothèse
+
+En effet, la méthode de réinitialisation d'environnement ne régénérait pas les variables modifiées à chaque étape dans le cas de l'environnement que nous testions ici.
+
+| Environnement statique | Environnement qui évolue au fil du temps | Environnement qui suit une évolution comparable à l'initialisation puis qui devient statique |
+| ----------- | ----------- | ----------- |
+| 13 808 | 0 |    112 |
+|  7 296 | 0 | 12 079 |
+|  5 353 | 0 |  3 194 |
+|  2 007 | 0 |  2 109 |
+| 11 138 | 0 |  1 821 |
+|  9 203 | 0 |    973 |
+| 10 095 | 0 |  2 602 |
+|  4 896 | 0 |    124 |
+| 11 008 | 0 |  3 918 |
+|  5 688 | 0 |  6 754 |
+
+Nous obtenons à peu près les mêmes résultats.
+
+Une autre hypothèse pouvant expliquer la difficulté d'obtenir des résultats est la suivante :
+
+Dans le 3e environnement, les paramètres évoluent à l'initialisation, c'est-à-dire au moment où la graine est fixée. Son instance d'entrainement et son instance de test doivent donc avoir des paramètres identiques. L'environnement qui évolue au fil du temps voit ses paramètres évoluer petit à petit. Peut-être que lui se fait tester sur une instance avec des paramètres différents.
+
+### Vérification de la seconde hypothèse
+
+On fait en sorte que l'environnement qui évolue génère des instances aussi similaires au cours du temps que l'environnement qui évolue à l'initialisation.
+
+Pour cela, on va créer une graine différente pour chaque étape :
+
+~~~ python
+self.seeds = []
+for i in range(self.duration):
+    seeds.append(i)
+~~~
+
+Et elles seront appliquées respectivement à chaque étape :
+
+~~~ python
+seed = self.seeds[self._state % self.duration]
+random.seed(seed)
+np.random.seed(seed)
+~~~
+
+| Tests __avant__ apprentissage | Tests __après__ apprentissage |
+| ----------- | ----------- |
+| 3 638 | 0 |
+| 6 661 | 0 |
+| 5 676 | 0 |
+| 2 761 | 0 |
+| 3 110 | 0 |
+| 1 836 | 0 |
+| 3 493 | 0 |
+| 2 958 | 0 |
+| 1 291 | 0 |
+| 3 304 | 0 |
+
+Ces résultats montrent que bien que l'environnement soit viable, le fait d'apprendre sur un environnement dont les paramètres évoluent au fil du temps est bien plus complexe. En effet, un agent basé sur l'algorithme SAC obtient de meilleurs résultats (en politique d'exploration) avant d'avoir appris qu'après (en politique cupide comme en politique d'exploration).
+
 
 ### Ralentir l'évolution et remesurer ?
 
 
 ## D- Inciter au biais de confirmation
+
+## E- Inertie face à une corrélation illusoire
 
 # Conclusion
 

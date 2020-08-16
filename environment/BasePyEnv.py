@@ -65,7 +65,7 @@ class BasePyEnv(py_environment.PyEnvironment):
     def _reset(self):
         self._state = 0
         self._episode_ended = False
-        #self.__init__()
+        self.__init__()
         return ts.restart(self.initial_observation)
     
     def _step(self, action):

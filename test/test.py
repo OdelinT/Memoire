@@ -909,51 +909,53 @@ class test(unittest.TestCase):
             #endregion
     
     def testCompareChangingEnvTenTimesOnSmallerIterations(self):
-        for _ in range(10):
-            #region Hyperparameters from the example of the documentation
-            # use "num_iterations = 1e6" for better results,
-            # 1e5 is just so this doesn't take too long. 
-            self.num_iterations = 1000
-            self.log_interval = self.num_iterations +1
-            self.eval_interval = self.num_iterations +1 
-            self.num_eval_episodes = 100
+    
+        #region Hyperparameters from the example of the documentation
+        # use "num_iterations = 1e6" for better results,
+        # 1e5 is just so this doesn't take too long. 
+        self.num_iterations = 1000
+        self.log_interval = self.num_iterations +1
+        self.eval_interval = self.num_iterations +1 
+        self.num_eval_episodes = 100
 
-            self.collect_steps_per_iteration = 10
-            self.initial_collect_steps = self.collect_steps_per_iteration
-            self.replay_buffer_capacity = self.num_iterations
+        self.collect_steps_per_iteration = 10
+        self.initial_collect_steps = self.collect_steps_per_iteration
+        self.replay_buffer_capacity = self.num_iterations
 
-            self.batch_size = 256 
+        self.batch_size = 256 
 
-            self.learning_rate = 3e-3
-            self.critic_learning_rate = self.learning_rate
-            self.actor_learning_rate = self.learning_rate
-            self.alpha_learning_rate = self.learning_rate
-            self.target_update_tau = 0.05 
-            self.target_update_period = 1 
-            self.gamma = 0.99 
-            self.reward_scale_factor = 1.0 
-            self.gradient_clipping = None # @param
+        self.learning_rate = 3e-3
+        self.critic_learning_rate = self.learning_rate
+        self.actor_learning_rate = self.learning_rate
+        self.alpha_learning_rate = self.learning_rate
+        self.target_update_tau = 0.05 
+        self.target_update_period = 1 
+        self.gamma = 0.99 
+        self.reward_scale_factor = 1.0 
+        self.gradient_clipping = None # @param
 
-            self.fc_layer_params = (256, 256)
-            self.actor_fc_layer_params = self.fc_layer_params
-            self.critic_joint_fc_layer_params = self.fc_layer_params
-            #endregion
+        self.fc_layer_params = (256, 256)
+        self.actor_fc_layer_params = self.fc_layer_params
+        self.critic_joint_fc_layer_params = self.fc_layer_params
+        #endregion
 
-            for env in [
-                {
-                    "train" : self.Changing_train_env, 
-                    "eval" : self.Changing_eval_env, 
-                    "name": "Environment changing over time"
-                },{
-                    "train" : self.Changed_train_env, 
-                    "eval" : self.Changed_eval_env, 
-                    "name": "Environment changed 30 times at initalization"
-                },{
-                    "train" : self.base_train_env, 
-                    "eval" : self.base_eval_env, 
-                    "name": "Base environment"
-                }
-            ]:
+        for env in [
+            {
+                "train" : self.Changing_train_env, 
+                "eval" : self.Changing_eval_env, 
+                "name": "Environment changing over time"
+            },{
+                "train" : self.Changed_train_env, 
+                "eval" : self.Changed_eval_env, 
+                "name": "Environment changed 30 times at initalization"
+            },{
+                "train" : self.base_train_env, 
+                "eval" : self.base_eval_env, 
+                "name": "Base environment"
+            }
+        ]:
+            results = []
+            for _ in range(10):
                 logging.info('----------------------------------')
                 logging.info(f'Starting to test {env["name"]}')
                 logging.info('----------------------------------')
@@ -977,8 +979,9 @@ class test(unittest.TestCase):
                 #region Agent training results
                 greedy = greedy_policy.GreedyPolicy(tf_agent.policy)
                 logging.info('Test agent result')
-                self.compute_avg_return(self.base_eval_env, greedy, self.num_eval_episodes, display=False)
+                results.append(self.compute_avg_return(self.base_eval_env, greedy, self.num_eval_episodes, display=False))
                 #endregion
+            logging.info(results)
        
     
     def testReadDumpedData(self):
@@ -1153,7 +1156,7 @@ class test(unittest.TestCase):
 
             if i % eval_interval == 0:
                 logging.info('step = {0}:'.format(i))
-                avg_return = self.compute_avg_return(eval_env, tf_agent.policy, num_eval_episodes)
+                avg_return = self.compute_avg_return(eval_env, greedy_policy.GreedyPolicy(tf_agent.policy), num_eval_episodes)
                 returns.append(avg_return)
 
     # https://github.com/tensorflow/agents/blob/master/docs/tutorials/1_dqn_tutorial.ipynb
