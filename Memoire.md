@@ -6,19 +6,24 @@
 
 ## Réflexion
 
-Tout vient d'une réflexion sur la différence entre corrélation et causalité. C'est un problème qui survient systématiquement lorsqu'on fait des statistiques descriptives à partir de données dont on dispose. 
+Tout vient d'une réflexion sur la différence entre corrélation et causalité. 
+Puisqu'une grande part de la cognition humaine est basée sur la notion de causalité, tandis que les algorithmes sont basées sur des corrélations, c'est une question récurrente sur les questions d'intelligence artificielle. 
+Ce problème est parfois posé comme un des frein majeur au développemet de ces dernières (https://www.nature.com/articles/s41599-020-0494-4?source=techstories.org#Sec5).
 
-L'apprentissage automatique peut lui aussi subir ce biais, ne serait-ce que parce que le biais vient des données en entrées, et ce, malgré une validation croisée.
+Les productions humaines qui s'appuient sur l'apprentissage automatique peuvent également subir ce biais, ne serait-ce que parce que le biais vient des données en entrées, et ce, malgré une validation croisée.
 
 Quelle réponse peut-on apporter à ce biais ?
 
-Dans le monde réel, avec une randomisation : couper aléatoirement un échantillon en deux, agir sur seulement l'une des moitiés, et comparer les résultats entre les deux groupes.
+Dans le monde réel, une méthode souvent appliquée est la randomisation : couper aléatoirement un échantillon en deux, agir sur seulement l'une des moitiés, et comparer les résultats entre les deux groupes.
 
 Est-ce applicable à l'apprentissage automatique ?
 
-Il faut pour cela que l'algorithme puisse agir sur son environnement pour apprnedre non seulement à partir de données initiales, mais aussi à partir du résultat de ses actions. 
+Il faut pour cela que l'algorithme puisse agir sur son environnement pour apprnedre non seulement à partir de données initiales, mais aussi à partir du résultat de ses actions.
+Il s'agit justement de la définition de l'apprentissage par renforcement, un des types d'apprentissage automatique.
 
-On peut donc imaginer ajouter d'une randomisation au sein d'un algorithme d'apprentissage par renforcement pour améliorer ses résultats, ou du moins pour voir si ses résultats évoluent.
+L'apprentissage par renforcement, en agissant sur son environnement, est-il capable de différencier une corrélation d'une causalité ?
+
+On peut lister différentes situations biaisées, et observer dans quelle mesure un algorithme d'apprentissage par renforcement (un agent) tombe dans ces pièges, c'est-à-dire dans quelle mesure ces biais rendent difficile pour cet agent d'atteindre son objectif.
 
 ## Définitions
 
@@ -53,78 +58,150 @@ Rasoir d'Ockham : aussi appelé principe de parcimonie, est un principe de raiso
 
 Biais du rasoir d'Ockham : privilégier les modèles les plus simples peut éliminer une explication qui est tout aussi vraie.
 
-## Problématique
+Biais (définition générale) : une démarche ou un procédé qui engendre des erreurs.
 
-Par "biais", on considèrera la définition suivante : "une démarche ou un procédé qui engendre des erreurs".
+Biais (en statistiques) : différence entre la valeur de l'espérance d'un estimateur et la valeur qu'il est censé estimer.
+
+Dilemme biais-variance : le biais diminue à mesure que la complexité du modèle s'approche de la complexité (ni plus simple ni plus complexe) que l'environnement.
+
+
+### Les différents cas de corrélation
+
+#### a) Théoriques
+
+Sachant que A est corrélé à B, il y a plusieurs explications possibles :
+
+- A cause B
+
+- B cause A
+
+- A cause B et B cause A
+
+- C connu cause A et B
+
+- C inconnu cause A et B
+
+- Coincidence
+
+Si on ne peut observer C, peut-on différencier le cas 5 du cas 6 ? Peut-on estimer que nos données semblent répondre à une variable supplémentaire inconnue à partir d'une certaine quantité de données permettant d'écarter l'idée d'une coincidence ? Si oui, peut-on mesurer cette variable ? (sachant qu'on risque de la confondre avec le vrai bruit statistique)
+
+
+#### b) Illustration de ces cas
+
+Dans le cas où A, la quantité vendue, est corrélé à une variable B
+
+- La quantité vendue cause le résultat net
+
+- Le prix de vente cause la quantité vendue
+
+- Le nombre de ventes cause la fréquentation à venir, qui cause le nombre de ventes à venir
+
+- Les jours d'affluence causent la quantité vendue d'un produit et celle d'un autre produit
+
+- La complémentarité entre la farine et la levure cause une corrélation entre les quantités vendues de l'un et de l'autre
+
+- Une variable n'ayant aucun lien de causalité avec quoi que ce soit (ex: l'horoscope des sagittaires) peut néanmoins se retrouver corrélé avec d'autres variables si on ne dispose pas d'un échantillon suffisament grand. Peut alors exister un biais de sur-apprentissage.
+
+## Plusieurs approches
+
+### Effet cigogne intrinsèque aux algorithmes
 
 La définition formelle en statistique de biais, "différence entre la valeur de l'espérance d'un estimateur et la valeur qu'il est censé estimer" correspondrait à un problème de régression. 
 
-Pour un algorithme d'apprentissage par renforcement, l'objectif n'est pas tant d'estimer au plus proche une variable que d'en maximiser une. Cela dit, comme les algorithmes d'apprentissage automatique utilisent des indicateurs statistiques sensibles aux biais, ils sont aussi soumis au dilemme biais-variance (le biais diminue à mesure que la complexité du modèle s'approche de la complexité de l'environnement).
+Pour un algorithme d'apprentissage par renforcement, l'objectif n'est pas tant d'estimer au plus proche une variable que d'en maximiser une. 
+Cela dit, comme les algorithmes d'apprentissage automatique utilisent des modèles statistiques, ils sont aussi sensibles à ces biais, et soumis au dilemme biais-variance.
 
 - Peut-on utiliser l'apprentissage par renforcement pour différencier des corrélations de causalités ? Pour prouver l'existence de causalités ?
-
- - Très général... Comment le traduire en une expérience ?
 
 - Dans quelle mesure ce biais influence-t-il le résultat de prédictions basées sur l'apprentissage automatique ?
 
 - En cas de correction d'un modèle biaisé, avec quelle inertie les algorithmes apprennent de leurs erreurs ?
 
+### Biais induits par l'humain dans son utilisation de la technologie
 
-### Autres comparaisons possibles
+Comme nous l'avons vu, la corrélation est une considération statistique, tandis que la causalité appartient au réel. 
+Un algorithme d'apprentissage automatique n'a pas nécessairement besoin de la notion de causalité pour répondre à sa fonction.
 
-- Quelle est l'efficacité l'agent qui ne peut apprendre qu'avec des données ayant déjà été observées et biaisées (apprentissage supervisé)
+C'est après des décisions humaines que la solution finira par utiliser des corrélations comme causalité.
 
- - En utilisant le replaybuffer ? Transformer le as_dataset en array numpy ?
+### Comparaison entre types d'apprentissage automatique
 
-- Versus l'efficacité si on pré-entraine l'agent avec des données ayant déjà été observées puis qu'on le laisse se renforcer sans randomisation (apprentissage supervisé et par renforcement)
+Une approche pour isoler dans quelle mesure l'apprentissage par renforcement distigue une corrélation d'une causalité serait de soumettre ses données d'apprentissage à un algorithme d'apprentissage automatique différent.
+
+Pour cela, on pourrait imaginer enregistrer toutes les expériences réalisées par un agent pour apprendre, et utiliser ensuite ces dernières pour un apprentissage supervisé.
+
+Cependant, les résultats d'une régression dépendent énormément de différents paramètres liés à l'environnement. 
+Il est possible, lors du paramétrage de l'environnement, d'ajouter de la connaissance du contexte que l'agent n'aurait pas eu seul, voire d'ajouter des biais de cette façon.
+
+### Implémenter une logique de randomisation
+
+Si un algorithme d'apprentissage par renforcement est soumis à des biais, peut-on appliquer une solution analogue à celle que les humains font sur le réel ?
+
+Peut-on développer un tel algorithme, ou forcer un algorithme existant à le faire ? 
+
+Quel impact cela aura-t-il sur ses résultats ?
+
+L'ajout d'une randomisation devrait ralentir l'agent dans son analyse, et ralentir sa progression dans les situations non biaisées.
+
+L'agent devrait également être ralenti dans une situation biaisée si les algorithmes actuels sont suffisants pour appréhender la différence entre corrélation et causalité pour les mêmes raisons.
+
+Cette expérimentation pourrait même être affinée en la combinant à une situation de causalité impliquant des paramètres que l'agent ne peut pas tous observer.
+
+### Vrac
+
+- On peut imaginer ajouter des corrélations sans causalité dans l'environnement, et regarder dans quelle mesure elles perturberont l'apprentissage de l'agent
+__--> Commun à toutes les approches__
 
  - Randomisation, n'est-elle pas en quelque sorte déjà faite par l'algo lors de l'exploration ?
 
- - Si oui, dans quelle mesure l'algo est-il sensible à l'évolution de paramètres qu'il ne peut observer ?
-
  - Randomisation : passer de temps en temps en random policy ou en collect policy pour réduire l'intertie ?
+__--> trop proche de l'implémentation__
 
 - Versus l'efficacité si on pré-entraine l'agent avec des données ayant déjà été observées puis qu'on le laisse se renforcer avec randomisation (apprentissage supervisé et par renforcement)
+__--> trop proche de l'implémentation__
 
-Questions supplémentaires, dans le cas où je développe un algorithme qui effectue explicitement une randomisation pour tester si les corrélations observées sont des causalités :
+# I- Revue de littérature
 
-- Versus l'efficacité de l'apprentissage par renforcement seul avec randomisation
+## A- Une question triviale ?
 
-- Versus l'efficacité de l'apprentissage par renforcement seul sans randomisation
+La question de confusion entre corrélation et causalité dans le cas de l'apprentissage automatique peut être considéré comme triviale du point de vue des algorithmes. 
+En effet, ceux-ci ne sont pas basées sur les causalités, qui sont des phénomènes réels, seulement des corrélations, qui sont des liens statistiques.
+Selon cette considération, c'est au moment où ces algorithmes sont utilisés au sein d'une application que l'intelligence humaine (des développeurs, des analystes) va biaiser la situation.
 
-### L'apprentissage automatique pour prouver l'existence de causalité ?
+Cependant, il convient d'analyser ceci de façon spécifique face à différentes approches de l'apprentissage automatique.
 
-La question de confusion entre corrélation et causalité dans le cas de l'apprentissage automatique peut être considéré comme triviale du point de vue des algorithmes. En effet, ceux-ci n'étudient pas les causalités, seulement des corrélations. C'est au moment où ces algorithmes sont utilisés au sein d'une application que l'intelligence humaine (des développeurs, des analystes) va biaiser la situation.
+### a) Dans le cas d'une régression
+
+Dans le cas d'une régression, la question peut sembler triviale.
+
+Une grande partie des biais peuvent être réduits par une validation croisée :
+
+- Couper l'échantillon en deux de façon aléatoire
+
+- Apprendre à partir d'une partie des données
+
+- Vérifier la qualité de l'apprentissage en regardant dans quelle mesure le modèle se trompe sur les données restantes
+
+Une autre part des biais dépend directement de la qualité des données en entrée. Si les données sont elles-mêmes non représentatives de la situation, une validation croisée ne résoudra pas le problème.
+
+Dans le cas où confusion entre corrélation et causalité il y a, ça n'est pas au niveau des algorithmes d'apprentissage automatique, qui n'étudient que les corrélations. C'est lors de l'utilisation de ces algorithmes qu'il peut y avoir confusion.
+
+Puisqu'une régression consiste à mesurer les corrélations entre toutes les variables afin d'en estimer une à partir des autres, il suffit que certaines variables soient corrélées avec la celle à estimer pour biaiser les résultats. Pour combattre ce biais, il faut qu'un être humain analyse le contexte pour déterminer s'il y a causalité entre les variables.
+
+/!\ http://www.cems.uwe.ac.uk/~irjohnso/coursenotes/uqc832/tr-bias.pdf
+
+/!\ cette étude montre que même dans le cas d'une régression il existe des méthodes permettant de diminuer ce biais
+
+
+### b) Dans le cas de l'apprentissage par renforcement
+
+Si le cas de la régression semblait trivial, c'est peut-être parce que l'algorithme n'a pas l'occasion d'interagir avec son environnement pour tester ce qui est une corrélation et ce qui est une causalité.
 
 Cependant, peut-on utiliser des algos d'apprentissage par renforcement pour trouver/prouver des relations de causalité entre des variables ?
 
 Pour les variables de ses actions, on peut se dire que oui : il suffit de le laisser agir pour qu'il fasse ou non varier les autres observations et la récompense.
 
 Cependant, si la récompense augmente, et que les observations évoluent de façon linéaire au fil du temps cela ne prouve pas forcément que les actions font s'améliorer la récompense. Il est possible que la seule relation de causalité soit non pas entre les actions d'un côté, la récompense et les observations de l'autre, mais entre le temps et ces dernières.
-
-
-# I- Revue de littérature
-
-## A- Une question triviale ?
-
-### a) Dans le cas d'une régression
-
-__Pourquoi parler de la régression ?__
-
-Dans le cas d'une régression, la question peut sembler triviale.
-
-Si confusion entre corrélation et causalité il y a, ça n'est pas au niveau des algorithmes d'apprentissage automatique, qui n'étudient que les corrélations. C'est lors de l'utilisation de ces algorithmes qu'il peut y avoir confusion.
-
-Puisqu'une régression consiste à mesurer les corrélations entre toutes les variables afin d'en estimer une à partir des autres, il suffit que certaines variables soient corrélées avec la celle à estimer pour biaiser les résultats. Pour combattre ce biais, il faut qu'un être humain analyse le contexte pour déterminer s'il y a causalité entre les variables.
-
-> http://www.cems.uwe.ac.uk/~irjohnso/coursenotes/uqc832/tr-bias.pdf
-
-Cependant, cette étude montre que même dans le cas d'une régression il existe des méthodes permettant de diminuer ce biais
-
-
-### b) Dans le cas de l'apprentissage par renforcement
-
-Si le cas de la régression semblait trivial, c'est peut-être parce que l'algorithme n'a pas l'occasion d'interagir avec son environnement pour tester ce qui est une corrélation et ce qui est une causalité.
 
 On peut d’ailleurs différencier trois types de variables qui construisent la réalité avec laquelle interagit un agent :
 
@@ -154,43 +231,6 @@ Derrière l'expression "l'application défavorise les profils féminins", on pou
 
 Le problème n'est donc pas intrinsèque à l'algorithme, mais dû aux données en entrée, et à la décision de partir de ces données pour obtenir ce résultat. Il s'agit d'un biais présent dans les données d'apprentissage, ainsi que d'une erreur humaine de confusion entre corrélation et causalité, les concepteurs ayant supposé que les choix de recrutement passés étaient des décisions sinon optimales, au moins de bons exemples vers lesquels tendre, alors que ces choix étaient marqués d'erreurs humaines.
 
-
-## B- Les différents cas de corrélation
-
-### a) Théoriques
-
-Sachant que A est corrélé à B, il y a plusieurs explications possibles :
-
-- A cause B
-
-- B cause A
-
-- A cause B et B cause A
-
-- C connu cause A et B
-
-- C inconnu cause A et B
-
-- Coincidence
-
-Si on ne peut observer C, peut-on différencier le cas 5 du cas 6 ? Peut-on estimer que nos données semblent répondre à une variable supplémentaire inconnue à partir d'une certaine quantité de données permettant d'écarter l'idée d'une coincidence ? Si oui, peut-on mesurer cette variable ? (sachant qu'on risque de la confondre avec le vrai bruit statistique)
-
-
-### b) Illustration de ces cas
-
-Dans le cas où A, la quantité vendue, est corrélé à une variable B
-
-- La quantité vendue cause le résultat net
-
-- Le prix de vente cause la quantité vendue
-
-- Le nombre de ventes cause la fréquentation à venir, qui cause le nombre de ventes à venir
-
-- Les jours d'affluence causent la quantité vendue d'un produit et celle d'un autre produit
-
-- La complémentarité entre la farine et la levure cause une corrélation entre les quantités vendues de l'un et de l'autre
-
-- Une variable n'ayant aucun lien de causalité avec quoi que ce soit (ex: l'horoscope des sagittaires) peut néanmoins se retrouver corrélé avec d'autres variables si on ne dispose pas d'un échantillon suffisament grand. Peut alors exister un biais de sur-apprentissage.
 
 ## C- Exemples de biais dans l'apprentissage automatique
 
