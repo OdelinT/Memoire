@@ -7,10 +7,10 @@
 ## Réflexion
 
 Tout vient d'une réflexion sur la différence entre corrélation et causalité. 
-Puisqu'une grande part de la cognition humaine est basée sur la notion de causalité, tandis que les algorithmes sont basées sur des corrélations, c'est une question récurrente sur les questions d'intelligence artificielle. 
-Ce problème est parfois posé comme un des frein majeur au développement de ces dernières (https://www.nature.com/articles/s41599-020-0494-4?source=techstories.org#Sec5).
+Puisqu'une grande part de la cognition humaine est basée sur la notion de causalité, tandis que les algorithmes sont basés sur des corrélations, c'est une question récurrente sur les questions d'intelligence artificielle. 
+Ce problème est parfois posé comme un des freins majeurs au développement de ces dernières (https://www.nature.com/articles/s41599-020-0494-4?source=techstories.org#Sec5).
 
-Les productions humaines qui s'appuient sur l'apprentissage automatique peuvent également subir ce biais, ne serait-ce que parce que le biais vient des données en entrées, et ce, malgré une validation croisée.
+Les productions humaines qui s'appuient sur l'apprentissage automatique peuvent également subir ce biais, ne serait-ce que parce que le biais vient des données en entrée, et ce, malgré une validation croisée.
 
 Quelle réponse peut-on apporter à ce biais ?
 
@@ -23,7 +23,7 @@ Il s'agit justement de la définition de l'apprentissage par renforcement, un de
 
 L'apprentissage par renforcement, en agissant sur son environnement, est-il capable de différencier une corrélation d'une causalité ?
 
-On peut lister différentes situations biaisées, et observer dans quelle mesure un algorithme d'apprentissage par renforcement (un agent) tombe dans ces pièges, c'est-à-dire dans quelle mesure ces biais rendent difficile pour cet agent d'atteindre son objectif.
+On peut lister différentes situations biaisées et observer dans quelle mesure un algorithme d'apprentissage par renforcement (un agent) tombe dans ces pièges, c'est-à-dire dans quelle mesure ces biais rendent difficile pour cet agent d'atteindre son objectif.
 
 ## Définitions
 
@@ -107,7 +107,7 @@ Dans le cas où A, la quantité vendue, est corrélé à une variable B
 
 ### Effet cigogne intrinsèque aux algorithmes
 
-La définition formelle en statistique de biais, "différence entre la valeur de l'espérance d'un estimateur et la valeur qu'il est censé estimer" correspondrait à un problème de régression. 
+La définition formelle en statistique du terme biais, "différence entre la valeur de l'espérance d'un estimateur et la valeur qu'il est censé estimer" correspondrait à un problème de régression. 
 
 Pour un algorithme d'apprentissage par renforcement, l'objectif n'est pas tant d'estimer au plus proche une variable que d'en maximiser une. 
 Cela dit, comme les algorithmes d'apprentissage automatique utilisent des modèles statistiques, ils sont aussi sensibles à ces biais, et soumis au dilemme biais-variance.
@@ -142,7 +142,7 @@ Peut-on développer un tel algorithme, ou forcer un algorithme existant à le fa
 
 Quel impact cela aura-t-il sur ses résultats ?
 
-L'ajout d'une randomisation devrait ralentir l'agent dans son analyse, et ralentir sa progression dans les situations non biaisées.
+L'ajout d'une randomisation devrait ralentir l'agent dans son analyse et ralentir sa progression dans les situations non biaisées.
 
 L'agent devrait également être ralenti dans une situation biaisée si les algorithmes actuels sont suffisants pour appréhender la différence entre corrélation et causalité pour les mêmes raisons.
 
@@ -165,8 +165,8 @@ __--> trop proche de l'implémentation__
 
 ## A- Une question triviale ?
 
-La question de confusion entre corrélation et causalité dans le cas de l'apprentissage automatique peut être considéré comme triviale du point de vue des algorithmes. 
-En effet, ceux-ci ne sont pas basées sur les causalités, qui sont des phénomènes réels, seulement des corrélations, qui sont des liens statistiques.
+La question de confusion entre corrélation et causalité dans le cas de l'apprentissage automatique peut être considérée comme triviale du point de vue des algorithmes. 
+En effet, ceux-ci ne sont pas basés sur les causalités, qui sont des phénomènes réels, seulement des corrélations, qui sont des liens statistiques.
 Selon cette considération, c'est au moment où ces algorithmes sont utilisés au sein d'une application que l'intelligence humaine (des développeurs, des analystes) va biaiser la situation.
 
 Cependant, il convient d'analyser ceci de façon spécifique face à différentes approches de l'apprentissage automatique.
@@ -179,7 +179,7 @@ Une grande partie des biais peuvent être réduits par une validation croisée :
 
 - Apprendre à partir d'une partie des données
 
-- Vérifier la qualité de l'apprentissage en regardant dans quelle mesure le modèle se trompe sur les données restantes
+- Vérifier la qualité de l'apprentissage en regardant dans quelle mesure le modèle se trompe sur les données restantes.
 
 Une autre part des biais dépend directement de la qualité des données en entrée. Si les données sont elles-mêmes non représentatives de la situation, une validation croisée ne résoudra pas le problème.
 
@@ -187,7 +187,7 @@ __Le cas de la causalité__
 
 Dans le cas où confusion entre corrélation et causalité il y a, ça n'est pas au niveau des algorithmes d'apprentissage automatique, qui n'étudient que les corrélations. C'est lors de l'utilisation de ces algorithmes qu'il peut y avoir confusion.
 
-Puisque les modèles consistent à mesurer les corrélations entre toutes les variables afin d'en estimer une à partir des autres, il suffit que certaines variables soient corrélées avec la celle à estimer pour biaiser les résultats. Pour combattre ce biais, il faut qu'un être humain analyse le contexte pour déterminer s'il y a causalité entre les variables.
+Puisque les modèles consistent à mesurer les corrélations entre toutes les variables afin d'en estimer une à partir des autres, il suffit que certaines variables soient corrélées avec celle à estimer pour biaiser les résultats. Pour combattre ce biais, il faut qu'un être humain analyse le contexte pour déterminer s'il y a causalité entre les variables.
 
 ### b) L'inférence causale en statistiques
 
@@ -207,11 +207,11 @@ https://projecteuclid.org/euclid.ba/1580461461
 
 Si le cas de la régression semblait trivial, c'est peut-être parce que l'algorithme n'a pas l'occasion d'interagir avec son environnement pour tester ce qui est une corrélation et ce qui est une causalité.
 
-Cependant, peut-on utiliser des algos d'apprentissage par renforcement pour trouver/prouver des relations de causalité entre des variables ?
+Cependant, peut-on utiliser des algorithmes d'apprentissage par renforcement pour trouver/prouver des relations de causalité entre des variables ?
 
 Pour les variables de ses actions, on peut se dire que oui : il suffit de le laisser agir pour qu'il fasse ou non varier les autres observations et la récompense.
 
-Cependant, si la récompense augmente, et que les observations évoluent de façon linéaire au fil du temps cela ne prouve pas forcément que les actions font s'améliorer la récompense. Il est possible que la seule relation de causalité soit non pas entre les actions d'un côté, la récompense et les observations de l'autre, mais entre le temps et ces dernières.
+Cependant, si la récompense augmente et que les observations évoluent de façon linéaire au fil du temps, cela ne prouve pas forcément que les actions font s'améliorer la récompense. Il est possible que la seule relation de causalité soit non pas entre les actions d'un côté, la récompense et les observations de l'autre, mais entre le temps et ces dernières.
 
 On peut d’ailleurs différencier trois types de variables qui construisent la réalité avec laquelle interagit un agent :
 
@@ -219,7 +219,7 @@ On peut d’ailleurs différencier trois types de variables qui construisent la 
 
 - les entrées (les actions de l'agent sur l'environnement)
 
-- Les sorties issues des actions sur l'environnement (la récompense et une partie des observations)
+- Les sorties issues des actions sur l'environnement (la récompense et une partie des observations).
 
 Au sein des librairies que nous utiliserons, ces variables sont découpées de la sorte :
 
@@ -227,11 +227,11 @@ Au sein des librairies que nous utiliserons, ces variables sont découpées de l
 
 - Les actions (les décisions prises par l'agent)
 
-- La récompense (ce que l'agent doit maximiser)
+- La récompense (ce que l'agent doit maximiser).
 
 Ainsi, contrairement au cas d'une régression, il est déterminé dès le départ sur quoi l'agent peut agir. L'agent ne peut pas vérifier l'existence de causalité entre deux variables qui ne dépendent pas de lui. 
 
-On pourrait se dire que l'algorithme fera explorera l'environnement à sa disposition pour maximiser sa récompense indépendamment de toute notion de toute notion de causalité. Cependant, il reste possible d'expérimenter si et dans quelle mesure l'algorithme tombe dans des biais.
+On pourrait se dire que l'algorithme explorera l'environnement à sa disposition pour maximiser sa récompense indépendamment de toute notion de toute notion de causalité. Cependant, il reste possible d'expérimenter si et dans quelle mesure l'algorithme tombe dans des biais.
 
 ### d) Exemples réels de logiciels biaisés
 
@@ -239,7 +239,7 @@ Dans le cas de l'application de sélection de CV d'Amazon qui défavorisait les 
 
 Derrière l'expression "l'application défavorise les profils féminins", on pourrait comprendre "l'algorithme suppose qu'il y a une causalité entre le genre d'un individu et ses compétences". Or, il s'agit davantage de "l'algorithme observe une corrélation entre le genre des individus et leur proportion au sein des recrutements à laquelle il lui a été demandé de correspondre". 
 
-Le problème n'est donc pas intrinsèque à l'algorithme, mais dû aux données en entrée, et à la décision de partir de ces données pour obtenir ce résultat. Il s'agit d'un biais présent dans les données d'apprentissage, ainsi que d'une erreur humaine de confusion entre corrélation et causalité, les concepteurs ayant supposé que les choix de recrutement passés étaient des décisions sinon optimales, au moins de bons exemples vers lesquels tendre, alors que ces choix étaient marqués d'erreurs humaines.
+Le problème n'est donc pas intrinsèque à l'algorithme mais dû aux données en entrée, et à la décision de partir de ces données pour obtenir ce résultat. Il s'agit d'un biais présent dans les données d'apprentissage, ainsi que d'une erreur humaine de confusion entre corrélation et causalité, les concepteurs ayant supposé que les choix de recrutement passés étaient des décisions sinon optimales, au moins de bons exemples vers lesquels tendre, alors que ces choix étaient marqués d'erreurs humaines.
 
 
 ## C- Exemples de biais dans l'apprentissage automatique
@@ -262,7 +262,7 @@ Pour lui éviter d'essayer des cas triviaux et a priori contreproductifs, on ser
 
 - Vendre ou acheter à perte peut parfois être une obligation légale 
 
- - Exemple : EDF qui achète à un prix plancher l'électricité issue d'énergies renouvelables sur le marché à terme de l'électricité
+ - Exemple : EDF qui achète à un prix plancher l'électricité issue d'énergies renouvelables sur le marché à terme de l'électricité.
 
 ### b) Coïncidence
 
@@ -282,7 +282,7 @@ On peut maximiser ce biais :
 
 - En fournissant une récompense et/ou des observations agrégées à une granularité trop épaisse
 
-- Nous arrivons alors à une coïncidence et un biais de surapprentissage
+- Nous arrivons alors à une coïncidence et un biais de surapprentissage.
 
 #### Données non représentatives : l'avantage de l'apprentissage par renforcement sur l'apprentissage supervisé
 
@@ -294,7 +294,7 @@ Résumé du protocole de cette publication :
 
 - A apprend à jouer à partir de données de véritables joueurs.
 
-- Puis B apprend à jouer contre A
+- Puis B apprend à jouer contre A.
 
 Il en résulte que la meilleure manière pour B de gagner consiste à ne pas jouer. En effet, A n'a appris à jouer que contre des personnes qui savent jouer. B faisant des choses inattendues, A perd tout seul. L'apprentissage par renforcement gagne sur le long terme face à un programme exclusivement formé sur des données qui ne recouvrent pas assez de cas.
 
@@ -308,7 +308,7 @@ Blumer, Ehrenfeucht, Haussler & Warmuth, 1987 (according to https://arxiv.org/pd
 
 https://psycnet.apa.org/fulltext/2017-54956-007.html
 
-Les algos y sont-ils sensibles ? Causalité au début qui décroit avec le temps, mais l'algo continue dans le sens initial ?
+Les algorithmes y sont-ils sensibles ? Causalité au début qui décroit avec le temps, mais l'algorithme continue dans le sens initial ?
 
 Testable, mais consiste surtout à mesurer l'inertie de l'algorithme à un changement du poids de ses variables.
 
