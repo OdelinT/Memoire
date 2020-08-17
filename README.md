@@ -1,6 +1,8 @@
 # Mémoire
 
-Written in markdown. To read it more easily, you can convert it to docx with pandoc.
+The final version is in pdf in French. It also contains an abstract and an extended abstract in English.
+
+The previous versions were written in french only and in markdown. To read it more easily, you can convert it to docx with pandoc.
 
 ~~~
 pandoc Memoire.md -t docx -o memoire.docx
